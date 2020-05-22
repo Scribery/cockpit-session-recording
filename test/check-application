@@ -55,7 +55,6 @@ class TestApplication(testlib.MachineCase):
         b.wait_present("#player-speed-up")
         b.click("#player-speed-up")
         b.wait_present(speed_val)
-        print("WT")
         b.wait_text(speed_val, "x2")
         b.click("#player-speed-up")
         b.wait_text(speed_val, "x4")
@@ -133,7 +132,7 @@ class TestApplication(testlib.MachineCase):
         b.click("#player-skip-frame")
         b.click("#player-skip-frame")
         b.click("#player-skip-frame")
-        b.wait_timeout(20)
+        b.wait_timeout(20000)
         b.wait_in_text(term_first_line, "localhost")
 
     def testPlaybackPause(self):

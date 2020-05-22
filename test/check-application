@@ -90,7 +90,11 @@ class TestApplication(testlib.MachineCase):
         zoom_three_scale_sel = '.console-ct[style^="transform: scale(1.3)"]'
         b = self.browser
         m = self.machine
-        if m.image in ["fedora-29"] or m.image in ["rhel-8.0"] or m.image in ["rhel-8.1"]:
+        if (
+            m.image in ["fedora-29"]
+            or m.image in ["rhel-8.0"]
+            or m.image in ["rhel-8.1"]
+        ):
             zoom_reset_scale_sel = '.console-ct[style*="transform: scale(0.8"]'
         else:
             zoom_reset_scale_sel = '.console-ct[style*="transform: scale(0.9"]'
@@ -131,5 +135,121 @@ class TestApplication(testlib.MachineCase):
         b.wait_timeout(20)
         b.wait_in_text(term_first_line, "localhost")
 
-if __name__ == '__main__':
+    def testPlaybackPause(self):
+        term_first_line = ".xterm-accessibility-tree div:nth-child(1)"
+        b = self.browser
+        m = self.machine
+        self.login_and_go("/session-recording")
+        b.wait_present(".content-header-extra")
+        b.wait_present("#user")
+        b.click(".listing-ct-item")
+        # Start and pause the player
+        b.click("#player-restart")
+        b.click("#player-play-pause")
+        b.click("#player-play-pause")
+        b.wait_timeout(30000)
+        # Make sure it didn't keep playing
+        b.wait_not_in_text(term_first_line, "localhost")
+        # Test if it can start playing again
+        b.click("#player-play-pause")
+        b.wait_timeout(30000)
+        b.wait_in_text(term_first_line, "localhost")
+
+    def testSessionRecordingConf(self):
+        import json, configparser
+
+        b = self.browser
+        m = self.machine
+        self.login_and_go("/session-recording")
+        b.wait_present(".content-header-extra")
+        b.wait_present("#user")
+        # Ensure that the button leads to the config page
+        b.click("#btn-config")
+        b.enter_page("/session-recording/config")
+
+        # TLOG config
+        # Save the existing config
+        m.download("/etc/tlog/tlog-rec-session.conf", "/tmp/tlog-rec-session.conf")
+        # Change all of the fields
+        b.set_input_text("#shell", "/test/path/shell")
+        b.set_input_text("#notice", "Test Notice")
+        b.set_input_text("#latency", "1")
+        b.set_input_text("#payload", "2")
+        b.set_checked("#log_input", True)
+        b.set_checked("#log_output", False)
+        b.set_checked("#log_window", False)
+        b.set_input_text("#limit_rate", "3")
+        b.set_input_text("#limit_burst", "4")
+        b.set_val("#limit_action", "drop")
+        b.set_input_text("#file_path", "/test/path/file")
+        b.set_input_text("#syslog_facility", "testfac")
+        b.set_val("#syslog_priority", "info")
+        b.set_val("#journal_priority", "info")
+        b.set_checked("#journal_augment", False)
+        b.set_val("#writer", "file")
+        b.click("#btn-save-tlog-conf")
+        m.download("/etc/tlog/tlog-rec-session.conf", "/tmp/test-tlog-rec-session.conf")
+        # Revert to the previous config before testing to ensure test continuity
+        m.upload(["/tmp/tlog-rec-session.conf"], "/etc/tlog/")
+        # Check that the config reflects the changes
+        conf = json.load(open("/tmp/test-tlog-rec-session.conf", "r"))
+        assert json.dumps(conf) == json.dumps(
+            {
+                "shell": "/test/path/shell",
+                "notice": "Test Notice",
+                "latency": 1,
+                "payload": 2,
+                "log": {"input": True, "output": False, "window": False},
+                "limit": {"rate": 3, "burst": 4, "action": "drop"},
+                "file": {"path": "/test/path/file"},
+                "syslog": {"facility": "testfac", "priority": "info"},
+                "journal": {"priority": "info", "augment": False},
+                "writer": "file",
+            }
+        )
+
+        # SSSD config
+        # Save the existing config
+        m.download(
+            "/etc/sssd/conf.d/sssd-session-recording.conf",
+            "/tmp/sssd-session-recording.conf",
+        )
+        # Download test with scope 'None'
+        b.set_val("#scope", "none")
+        b.click("#btn-save-sssd-conf")
+        m.download(
+            "/etc/sssd/conf.d/sssd-session-recording.conf",
+            "/tmp/test-none-sssd-session-recording.conf",
+        )
+        # Download test with scope 'Some'
+        b.set_val("#scope", "some")
+        b.set_input_text("#users", "test users")
+        b.set_input_text("#groups", "test groups")
+        b.click("#btn-save-sssd-conf")
+        m.download(
+            "/etc/sssd/conf.d/sssd-session-recording.conf",
+            "/tmp/test-some-sssd-session-recording.conf",
+        )
+        # Download test with scope 'All'
+        b.set_val("#scope", "all")
+        b.click("#btn-save-sssd-conf")
+        m.download(
+            "/etc/sssd/conf.d/sssd-session-recording.conf",
+            "/tmp/test-all-sssd-session-recording.conf",
+        )
+        # Revert to the previous config before testing to ensure test continuity
+        m.upload(["/tmp/sssd-session-recording.conf"], "/etc/sssd/conf.d/")
+        # Check that the configs reflected the changes
+        conf = configparser.ConfigParser()
+        conf.read_file(open("/tmp/test-none-sssd-session-recording.conf", "r"))
+        assert conf["session_recording"]["scope"] == "none"
+        conf.read_file(open("/tmp/test-some-sssd-session-recording.conf", "r"))
+        assert conf["session_recording"]["scope"] == "some"
+        assert conf["session_recording"]["users"] == "test users"
+        assert conf["session_recording"]["groups"] == "test groups"
+        conf.read_file(open("/tmp/test-all-sssd-session-recording.conf", "r"))
+        assert conf["session_recording"]["scope"] == "all"
+
+
+if __name__ == "__main__":
     testlib.test_main()

@@ -44,7 +44,7 @@ class TestApplication(testlib.MachineCase):
         b.wait_attr(slider, "style", "left: 100%;")
 
     def testSpeedControls(self):
-        speed_val = ".panel-footer > span:nth-child(10)"
+        speed_val = "#player-speed"
         b = self.browser
         m = self.machine
         self.login_and_go("/session-recording")
@@ -55,6 +55,7 @@ class TestApplication(testlib.MachineCase):
         b.wait_present("#player-speed-up")
         b.click("#player-speed-up")
         b.wait_present(speed_val)
+        print("WT")
         b.wait_text(speed_val, "x2")
         b.click("#player-speed-up")
         b.wait_text(speed_val, "x4")
@@ -168,8 +169,12 @@ class TestApplication(testlib.MachineCase):
         b.enter_page("/session-recording/config")
 
         # TLOG config
+        conf_file_path = "/etc/tlog/"
+        conf_file = f"{conf_file_path}tlog-rec-session.conf"
+        save_file = "/tmp/tlog-rec-session.conf"
+        test_file = "/tmp/test-tlog-rec-session.conf"
         # Save the existing config
-        m.download("/etc/tlog/tlog-rec-session.conf", "/tmp/tlog-rec-session.conf")
+        m.download(conf_file, save_file)
         # Change all of the fields
         b.set_input_text("#shell", "/test/path/shell")
         b.set_input_text("#notice", "Test Notice")
@@ -188,11 +193,11 @@ class TestApplication(testlib.MachineCase):
         b.set_checked("#journal_augment", False)
         b.set_val("#writer", "file")
         b.click("#btn-save-tlog-conf")
-        m.download("/etc/tlog/tlog-rec-session.conf", "/tmp/test-tlog-rec-session.conf")
+        m.download(conf_file, test_file)
         # Revert to the previous config before testing to ensure test continuity
-        m.upload(["/tmp/tlog-rec-session.conf"], "/etc/tlog/")
+        m.upload([save_file], conf_file_path)
         # Check that the config reflects the changes
-        conf = json.load(open("/tmp/test-tlog-rec-session.conf", "r"))
+        conf = json.load(open(test_file, "r"))
         assert json.dumps(conf) == json.dumps(
             {
                 "shell": "/test/path/shell",
@@ -209,45 +214,39 @@ class TestApplication(testlib.MachineCase):
         )
 
         # SSSD config
+        conf_file_path = "/etc/sssd/conf.d/"
+        conf_file = f"{conf_file_path}sssd-session-recording.conf"
+        save_file = "/tmp/sssd-session-recording.conf"
+        test_none_file = "/tmp/test-none-sssd-session-recording.conf"
+        test_some_file = "/tmp/test-some-sssd-session-recording.conf"
+        test_all_file = "/tmp/test-all-sssd-session-recording.conf"
         # Save the existing config
-        m.download(
-            "/etc/sssd/conf.d/sssd-session-recording.conf",
-            "/tmp/sssd-session-recording.conf",
-        )
+        m.download(conf_file, save_file)
         # Download test with scope 'None'
         b.set_val("#scope", "none")
         b.click("#btn-save-sssd-conf")
-        m.download(
-            "/etc/sssd/conf.d/sssd-session-recording.conf",
-            "/tmp/test-none-sssd-session-recording.conf",
-        )
+        m.download(conf_file, test_none_file)
         # Download test with scope 'Some'
         b.set_val("#scope", "some")
         b.set_input_text("#users", "test users")
         b.set_input_text("#groups", "test groups")
         b.click("#btn-save-sssd-conf")
-        m.download(
-            "/etc/sssd/conf.d/sssd-session-recording.conf",
-            "/tmp/test-some-sssd-session-recording.conf",
-        )
+        m.download(conf_file, test_some_file)
         # Download test with scope 'All'
         b.set_val("#scope", "all")
         b.click("#btn-save-sssd-conf")
-        m.download(
-            "/etc/sssd/conf.d/sssd-session-recording.conf",
-            "/tmp/test-all-sssd-session-recording.conf",
-        )
+        m.download(conf_file, test_all_file)
         # Revert to the previous config before testing to ensure test continuity
-        m.upload(["/tmp/sssd-session-recording.conf"], "/etc/sssd/conf.d/")
+        m.upload([save_file], conf_file_path)
         # Check that the configs reflected the changes
         conf = configparser.ConfigParser()
-        conf.read_file(open("/tmp/test-none-sssd-session-recording.conf", "r"))
+        conf.read_file(open(test_none_file, "r"))
         assert conf["session_recording"]["scope"] == "none"
-        conf.read_file(open("/tmp/test-some-sssd-session-recording.conf", "r"))
+        conf.read_file(open(test_some_file, "r"))
         assert conf["session_recording"]["scope"] == "some"
         assert conf["session_recording"]["users"] == "test users"
         assert conf["session_recording"]["groups"] == "test groups"
-        conf.read_file(open("/tmp/test-all-sssd-session-recording.conf", "r"))
+        conf.read_file(open(test_all_file, "r"))
         assert conf["session_recording"]["scope"] == "all"
 
 

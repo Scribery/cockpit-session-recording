@@ -153,6 +153,7 @@ class TestApplication(MachineCase):
         test_file = "/tmp/test-tlog-rec-session.conf"
 
         # Save the existing config
+        b.click("#btn-save-tlog-conf")
         m.download(conf_file, save_file)
         # Change all of the fields
         b.set_input_text("#shell", "/test/path/shell")
@@ -201,6 +202,7 @@ class TestApplication(MachineCase):
         test_all_file = "/tmp/test-all-sssd-session-recording.conf"
 
         # Save the existing config
+        b.click("#btn-save-sssd-conf")
         m.download(conf_file, save_file)
         # Download test with scope 'None'
         b.set_val("#scope", "none")
@@ -247,6 +249,17 @@ class TestApplication(MachineCase):
         b.mouse(".dragnpan", "mousemove", 10, 10)
         assert b.attr(".dragnpan", "scrollTop") != 0
         assert b.attr(".dragnpan", "scrollLeft") != 0
+
+    def testLogCorrelation(self):
+        b, _ = self._login()
+        # select the recording with the extra logs
+        b.click(".listing-ct-item:contains('01:07')")
+        b.click("#btn-logs-view")
+        # fast forward until the end
+        while "exit" not in b.text(self._term_line(22)):
+            b.click("#player-skip-frame")
+        # check for extra log entries
+        b.wait_present(".cockpit-log-message:contains('authentication failure')")
 
 
 if __name__ == "__main__":

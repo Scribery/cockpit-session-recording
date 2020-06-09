@@ -25,7 +25,7 @@ blocks:
           - bots/image-customize -v -i cockpit-ws -i `pwd`/cockpit-session-recording*.noarch.rpm -s `pwd`/test/vm.install $TEST_OS
           - bots/image-customize -v -r "usermod -u 981 tlog || true" $TEST_OS
           - bots/image-customize -v -u ./test/files/1.journal:/var/log/journal/1.journal $TEST_OS
-          - test/check-application -v
+          - test/check-application -v -t
 
       - name: Check centos-8
         commands:
@@ -33,4 +33,4 @@ blocks:
           - bots/image-customize -v -i cockpit-ws -i `pwd`/cockpit-session-recording*.noarch.rpm -s `pwd`/test/vm.install $TEST_OS
           - bots/image-customize -v -r "usermod -u 981 tlog || true" $TEST_OS
           - bots/image-customize -v -u ./test/files/1.journal:/var/log/journal/1.journal $TEST_OS
-          - test/check-application -v
+          - test/check-application -v -t

@@ -139,7 +139,7 @@ class TestApplication(MachineCase):
         b.click("#player-play-pause")
 
     def testSessionRecordingConf(self):
-        import json, configparser
+        import time, json, configparser
 
         b, m = self._login()
         # Ensure that the button leads to the config page
@@ -173,6 +173,7 @@ class TestApplication(MachineCase):
         b.set_checked("#journal_augment", False)
         b.set_val("#writer", "file")
         b.click("#btn-save-tlog-conf")
+        time.sleep(1)
         m.download(conf_file, test_file)
         # Revert to the previous config before testing to ensure test continuity
         m.upload([save_file], conf_file_path)
@@ -217,6 +218,7 @@ class TestApplication(MachineCase):
         # Download test with scope 'All'
         b.set_val("#scope", "all")
         b.click("#btn-save-sssd-conf")
+        time.sleep(1)
         m.download(conf_file, test_all_file)
         # Revert to the previous config before testing to ensure test continuity
         m.upload([save_file], conf_file_path)

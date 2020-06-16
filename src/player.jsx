@@ -20,16 +20,16 @@
 import React from 'react';
 import './player.css';
 import { Terminal as Term } from 'xterm';
-let cockpit = require("cockpit");
-let _ = cockpit.gettext;
-let moment = require("moment");
-let Journal = require("journal");
-let $ = require("jquery");
+const cockpit = require("cockpit");
+const _ = cockpit.gettext;
+const moment = require("moment");
+const Journal = require("journal");
+const $ = require("jquery");
 require("bootstrap-slider");
 
-let padInt = function (n, w) {
-    let i = Math.floor(n);
-    let a = Math.abs(i);
+const padInt = function (n, w) {
+    const i = Math.floor(n);
+    const a = Math.abs(i);
     let s = a.toString();
     for (w -= s.length; w > 0; w--) {
         s = '0' + s;
@@ -37,21 +37,21 @@ let padInt = function (n, w) {
     return ((i < 0) ? '-' : '') + s;
 };
 
-let formatDateTime = function (ms) {
+const formatDateTime = function (ms) {
     return moment(ms).format("YYYY-MM-DD HH:mm:ss");
 };
 
 /*
  * Format a time interval from a number of milliseconds.
  */
-let formatDuration = function (ms) {
+const formatDuration = function (ms) {
     let v = Math.floor(ms / 1000);
-    let s = Math.floor(v % 60);
+    const s = Math.floor(v % 60);
     v = Math.floor(v / 60);
-    let m = Math.floor(v % 60);
+    const m = Math.floor(v % 60);
     v = Math.floor(v / 60);
-    let h = Math.floor(v % 24);
-    let d = Math.floor(v / 24);
+    const h = Math.floor(v % 24);
+    const d = Math.floor(v / 24);
     let str = '';
 
     if (d > 0) {
@@ -67,7 +67,7 @@ let formatDuration = function (ms) {
     return (ms < 0 ? '-' : '') + str;
 };
 
-let scrollToBottom = function(id) {
+const scrollToBottom = function(id) {
     const el = document.getElementById(id);
     if (el) {
         el.scrollTop = el.scrollHeight;
@@ -82,15 +82,15 @@ function ErrorList(props) {
     }
 
     return (
-        <React.Fragment>
+        <>
             {list}
-        </React.Fragment>
+        </>
     );
 }
 
 function ErrorItem(props) {
     return (
-        <div className="alert alert-danger alert-dismissable" >
+        <div className="alert alert-danger alert-dismissable">
             <button type="button" className="close" data-dismiss="alert" aria-hidden="true">
                 <span className="pficon pficon-close" />
             </button>
@@ -100,7 +100,7 @@ function ErrorItem(props) {
     );
 }
 
-let ErrorService = class {
+const ErrorService = class {
     constructor() {
         this.addMessage = this.addMessage.bind(this);
         this.errors = [];
@@ -125,7 +125,7 @@ let ErrorService = class {
 /*
  * An auto-loading buffer of recording's packets.
  */
-let PacketBuffer = class {
+const PacketBuffer = class {
     /*
      * Initialize a buffer.
      */
@@ -181,7 +181,7 @@ let PacketBuffer = class {
         /* The journalctl reading the recording */
         this.journalctl = Journal.journalctl(
             this.matchList,
-            {count: "all", follow: false, merge: true});
+            { count: "all", follow: false, merge: true });
         this.journalctl.fail(this.handleError);
         this.journalctl.stream(this.handleStream);
         this.journalctl.done(this.handleDone);
@@ -300,7 +300,7 @@ let PacketBuffer = class {
         this.pktList.push(pkt);
         /* Notify any matching listeners */
         while (this.idxDfdList.length > 0) {
-            let idxDfd = this.idxDfdList[0];
+            const idxDfd = this.idxDfdList[0];
             if (idxDfd[0] < this.pktList.length) {
                 this.idxDfdList.shift();
                 idxDfd[1].resolve();
@@ -363,10 +363,12 @@ let PacketBuffer = class {
                     break;
                 }
                 if (io.length > 0) {
-                    this.addPacket({pos: this.pos,
-                                    is_io: true,
-                                    is_output: is_output,
-                                    io: io.join()});
+                    this.addPacket({
+                        pos: this.pos,
+                        is_io: true,
+                        is_output: is_output,
+                        io: io.join()
+                    });
                     io = [];
                 }
                 this.pos += x;
@@ -379,10 +381,12 @@ let PacketBuffer = class {
                     break;
                 }
                 if (io.length > 0 && is_output) {
-                    this.addPacket({pos: this.pos,
-                                    is_io: true,
-                                    is_output: is_output,
-                                    io: io.join()});
+                    this.addPacket({
+                        pos: this.pos,
+                        is_io: true,
+                        is_output: is_output,
+                        io: io.join()
+                    });
                     io = [];
                 }
                 is_output = false;
@@ -401,10 +405,12 @@ let PacketBuffer = class {
                     break;
                 }
                 if (io.length > 0 && !is_output) {
-                    this.addPacket({pos: this.pos,
-                                    is_io: true,
-                                    is_output: is_output,
-                                    io: io.join()});
+                    this.addPacket({
+                        pos: this.pos,
+                        is_io: true,
+                        is_output: is_output,
+                        io: io.join()
+                    });
                     io = [];
                 }
                 is_output = true;
@@ -423,16 +429,20 @@ let PacketBuffer = class {
                     break;
                 }
                 if (io.length > 0) {
-                    this.addPacket({pos: this.pos,
-                                    is_io: true,
-                                    is_output: is_output,
-                                    io: io.join()});
+                    this.addPacket({
+                        pos: this.pos,
+                        is_io: true,
+                        is_output: is_output,
+                        io: io.join()
+                    });
                     io = [];
                 }
-                this.addPacket({pos: this.pos,
-                                is_io: false,
-                                width: x,
-                                height: y});
+                this.addPacket({
+                    pos: this.pos,
+                    is_io: false,
+                    width: x,
+                    height: y
+                });
                 this.width = x;
                 this.height = y;
                 break;
@@ -447,10 +457,12 @@ let PacketBuffer = class {
         }
 
         if (io.length > 0) {
-            this.addPacket({pos: this.pos,
-                            is_io: true,
-                            is_output: is_output,
-                            io: io.join()});
+            this.addPacket({
+                pos: this.pos,
+                is_io: true,
+                is_output: is_output,
+                io: io.join()
+            });
         }
     }
 
@@ -517,7 +529,7 @@ let PacketBuffer = class {
                 if (!('__CURSOR' in e)) {
                     this.handleError("No cursor in a Journal entry");
                 }
-                this.cursor = e['__CURSOR'];
+                this.cursor = e.__CURSOR;
             }
             /* TODO Refer to entry number/cursor in errors */
             if (!('MESSAGE' in e)) {
@@ -525,16 +537,16 @@ let PacketBuffer = class {
             }
             /* Parse the entry message */
             try {
-                let utf8decoder = new TextDecoder();
+                const utf8decoder = new TextDecoder();
 
                 /* Journalctl stores fields with non-printable characters
                  * in an array of raw bytes formatted as unsigned
                  * integers */
-                if (Array.isArray(e['MESSAGE'])) {
-                    let u8arr = new Uint8Array(e['MESSAGE']);
+                if (Array.isArray(e.MESSAGE)) {
+                    const u8arr = new Uint8Array(e.MESSAGE);
                     this.parseMessage(JSON.parse(utf8decoder.decode(u8arr)));
                 } else {
-                    this.parseMessage(JSON.parse(e['MESSAGE']));
+                    this.parseMessage(JSON.parse(e.MESSAGE));
                 }
             } catch (error) {
                 this.handleError(error);
@@ -555,8 +567,10 @@ let PacketBuffer = class {
         /* Continue with the "following" run  */
         this.journalctl = Journal.journalctl(
             this.matchList,
-            {cursor: this.cursor,
-             follow: true, merge: true, count: "all"});
+            {
+                cursor: this.cursor,
+                follow: true, merge: true, count: "all"
+            });
         this.journalctl.fail(this.handleError);
         this.journalctl.stream(this.handleStream);
         /* NOTE: no "done" handler on purpose */
@@ -586,16 +600,16 @@ class Search extends React.Component {
         event.preventDefault();
         const name = event.target.name;
         const value = event.target.value;
-        let state = {};
+        const state = {};
         state[name] = value;
         this.setState(state);
-        cockpit.location.go(cockpit.location.path[0], $.extend(cockpit.location.options, {search_rec: value}));
+        cockpit.location.go(cockpit.location.path[0], $.extend(cockpit.location.options, { search_rec: value }));
     }
 
     handleSearchSubmit() {
         this.journalctl = Journal.journalctl(
             this.props.matchList,
-            {count: "all", follow: false, merge: true, grep: this.state.search});
+            { count: "all", follow: false, merge: true, grep: this.state.search });
         this.journalctl.fail(this.handleError);
         this.journalctl.stream(this.handleStream);
     }
@@ -607,7 +621,7 @@ class Search extends React.Component {
         items = items.map(item => {
             return <SearchEntry key={item.id} fastForwardToTS={this.props.fastForwardToTS} pos={item.pos} />;
         });
-        this.setState({items: items});
+        this.setState({ items: items });
     }
 
     handleError(data) {
@@ -617,7 +631,7 @@ class Search extends React.Component {
     clearSearchResults() {
         delete cockpit.location.options.search;
         cockpit.location.go(cockpit.location.path[0], cockpit.location.options);
-        this.setState({search: ""});
+        this.setState({ search: "" });
         this.handleStream([]);
     }
 
@@ -851,7 +865,7 @@ export class Player extends React.Component {
     sendInput(pkt) {
         if (pkt) {
             const current_input = this.state.input;
-            this.setState({input: current_input + pkt.io});
+            this.setState({ input: current_input + pkt.io });
         }
     }
 
@@ -866,7 +880,7 @@ export class Player extends React.Component {
         for (;;) {
             /* Get another packet to output, if none */
             for (; this.pkt === null; this.pktIdx++) {
-                let pkt = this.buf.pktList[this.pktIdx];
+                const pkt = this.buf.pktList[this.pktIdx];
                 /* If there are no more packets */
                 if (pkt === undefined) {
                     /*
@@ -886,7 +900,7 @@ export class Player extends React.Component {
             }
 
             /* Get the current local time */
-            let nowLocTS = performance.now();
+            const nowLocTS = performance.now();
 
             /* Ignore the passed time, if we're paused */
             if (this.state.paused) {
@@ -918,8 +932,8 @@ export class Player extends React.Component {
                 return;
             } else {
                 this.recTS += locDelay * this.speed;
-                let pktRecDelay = this.pkt.pos - this.recTS;
-                let pktLocDelay = pktRecDelay / this.speed;
+                const pktRecDelay = this.pkt.pos - this.recTS;
+                const pktLocDelay = pktRecDelay / this.speed;
                 this.currentTsPost = parseInt(this.recTS);
                 this.slider.slider('setValue', this.currentTsPost);
                 /* If we're more than 5 ms early for this packet */
@@ -955,37 +969,37 @@ export class Player extends React.Component {
     }
 
     playPauseToggle() {
-        this.setState({paused: !this.state.paused});
+        this.setState({ paused: !this.state.paused });
     }
 
     play() {
-        this.setState({paused: false});
+        this.setState({ paused: false });
     }
 
     pause() {
-        this.setState({paused: true});
+        this.setState({ paused: true });
     }
 
     speedUp() {
-        let speedExp = this.state.speedExp;
+        const speedExp = this.state.speedExp;
         if (speedExp < 4) {
-            this.setState({speedExp: speedExp + 1});
+            this.setState({ speedExp: speedExp + 1 });
         }
     }
 
     speedDown() {
-        let speedExp = this.state.speedExp;
+        const speedExp = this.state.speedExp;
         if (speedExp > -4) {
-            this.setState({speedExp: speedExp - 1});
+            this.setState({ speedExp: speedExp - 1 });
         }
     }
 
     speedReset() {
-        this.setState({speedExp: 0});
+        this.setState({ speedExp: 0 });
     }
 
     clearInputPlayer() {
-        this.setState({input: ""});
+        this.setState({ input: "" });
     }
 
     rewindToStart() {
@@ -1046,18 +1060,18 @@ export class Player extends React.Component {
     }
 
     handleKeyDown(event) {
-        let keyCodesFuncs = {
-            "P": this.playPauseToggle,
+        const keyCodesFuncs = {
+            P: this.playPauseToggle,
             "}": this.speedUp,
             "{": this.speedDown,
-            "Backspace": this.speedReset,
+            Backspace: this.speedReset,
             ".": this.skipFrame,
-            "G": this.fastForwardToEnd,
-            "R": this.rewindToStart,
+            G: this.fastForwardToEnd,
+            R: this.rewindToStart,
             "+": this.zoomIn,
             "=": this.zoomIn,
             "-": this.zoomOut,
-            "Z": this.fitIn,
+            Z: this.fitIn,
         };
         if (event.target.nodeName.toLowerCase() !== 'input') {
             if (keyCodesFuncs[event.key]) {
@@ -1088,30 +1102,30 @@ export class Player extends React.Component {
     }
 
     dragPanEnable() {
-        this.setState({drag_pan: true});
+        this.setState({ drag_pan: true });
 
-        let scrollwrap = this.refs.scrollwrap;
+        const scrollwrap = this.refs.scrollwrap;
 
         let clicked = false;
         let clickX;
         let clickY;
 
         $(this.refs.scrollwrap).on({
-            'mousemove': function(e) {
+            mousemove: function(e) {
                 clicked && updateScrollPos(e);
             },
-            'mousedown': function(e) {
+            mousedown: function(e) {
                 clicked = true;
                 clickY = e.pageY;
                 clickX = e.pageX;
             },
-            'mouseup': function() {
+            mouseup: function() {
                 clicked = false;
                 $('html').css('cursor', 'auto');
             }
         });
 
-        let updateScrollPos = function(e) {
+        const updateScrollPos = function(e) {
             $('html').css('cursor', 'move');
             $(scrollwrap).scrollTop($(scrollwrap).scrollTop() + (clickY - e.pageY));
             $(scrollwrap).scrollLeft($(scrollwrap).scrollLeft() + (clickX - e.pageX));
@@ -1119,8 +1133,8 @@ export class Player extends React.Component {
     }
 
     dragPanDisable() {
-        this.setState({drag_pan: false});
-        let scrollwrap = this.refs.scrollwrap;
+        this.setState({ drag_pan: false });
+        const scrollwrap = this.refs.scrollwrap;
         $(scrollwrap).off("mousemove");
         $(scrollwrap).off("mousedown");
         $(scrollwrap).off("mouseup");
@@ -1132,7 +1146,7 @@ export class Player extends React.Component {
             scale = scale + 0.1;
             this.zoom(scale);
         } else {
-            this.setState({term_zoom_max: true});
+            this.setState({ term_zoom_max: true });
         }
     }
 
@@ -1142,7 +1156,7 @@ export class Player extends React.Component {
             scale = scale - 0.1;
             this.zoom(scale);
         } else {
-            this.setState({term_zoom_min: true});
+            this.setState({ term_zoom_min: true });
         }
     }
 
@@ -1163,7 +1177,7 @@ export class Player extends React.Component {
         window.addEventListener("keydown", this.handleKeyDown, false);
 
         if (this.refs.wrapper.offsetWidth) {
-            this.setState({containerWidth: this.refs.wrapper.offsetWidth});
+            this.setState({ containerWidth: this.refs.wrapper.offsetWidth });
         }
         /* Open the terminal */
         this.state.term.open(this.refs.term);
@@ -1190,10 +1204,10 @@ export class Player extends React.Component {
     }
 
     render() {
-        let r = this.props.recording;
+        const r = this.props.recording;
 
-        let speedExp = this.state.speedExp;
-        let speedFactor = Math.pow(2, Math.abs(speedExp));
+        const speedExp = this.state.speedExp;
+        const speedFactor = Math.pow(2, Math.abs(speedExp));
         let speedStr;
 
         if (speedExp > 0) {
@@ -1205,30 +1219,30 @@ export class Player extends React.Component {
         }
 
         const style = {
-            "transform": "scale(" + this.state.scale + ") translate(" + this.state.term_translate + ")",
-            "transformOrigin": "top left",
-            "display": "inline-block",
-            "margin": "0 auto",
-            "position": "absolute",
-            "top": this.state.term_top_style,
-            "left": this.state.term_left_style,
+            transform: "scale(" + this.state.scale + ") translate(" + this.state.term_translate + ")",
+            transformOrigin: "top left",
+            display: "inline-block",
+            margin: "0 auto",
+            position: "absolute",
+            top: this.state.term_top_style,
+            left: this.state.term_left_style,
         };
 
         const scrollwrap = {
-            "minWidth": "630px",
-            "height": this.containerHeight + "px",
-            "backgroundColor": "#f5f5f5",
-            "overflow": this.state.term_scroll,
-            "position": "relative",
+            minWidth: "630px",
+            height: this.containerHeight + "px",
+            backgroundColor: "#f5f5f5",
+            overflow: this.state.term_scroll,
+            position: "relative",
         };
 
         const to_right = {
-            "float": "right",
+            float: "right",
         };
 
         // ensure react never reuses this div by keying it with the terminal widget
         return (
-            <React.Fragment>
+            <>
                 <div className="row">
                     <div id="recording-wrap">
                         <div className="col-md-7 player-wrap">
@@ -1243,54 +1257,84 @@ export class Player extends React.Component {
                                 </div>
                                 <div className="panel-footer">
                                     <Slider />
-                                    <button id="player-play-pause" title="Play/Pause - Hotkey: p" type="button" ref="playbtn"
+                                    <button
+id="player-play-pause" title="Play/Pause - Hotkey: p" type="button" ref="playbtn"
                                             className="btn btn-default btn-lg margin-right-btn play-btn"
-                                            onClick={this.playPauseToggle}>
-                                        <i className={"fa fa-" + (this.state.paused ? "play" : "pause")}
-                                           aria-hidden="true" />
+                                            onClick={this.playPauseToggle}
+                                    >
+                                        <i
+className={"fa fa-" + (this.state.paused ? "play" : "pause")}
+                                           aria-hidden="true"
+                                        />
                                     </button>
-                                    <button id="player-skip-frame" title="Skip Frame - Hotkey: ." type="button"
+                                    <button
+id="player-skip-frame" title="Skip Frame - Hotkey: ." type="button"
                                             className="btn btn-default btn-lg margin-right-btn"
-                                            onClick={this.skipFrame}>
+                                            onClick={this.skipFrame}
+                                    >
                                         <i className="fa fa-step-forward" aria-hidden="true" />
                                     </button>
-                                    <button id="player-restart" title="Restart Playback - Hotkey: Shift-R" type="button"
-                                            className="btn btn-default btn-lg" onClick={this.rewindToStart}>
+                                    <button
+id="player-restart" title="Restart Playback - Hotkey: Shift-R" type="button"
+                                            className="btn btn-default btn-lg" onClick={this.rewindToStart}
+                                    >
                                         <i className="fa fa-fast-backward" aria-hidden="true" />
                                     </button>
-                                    <button id="player-fast-forward" title="Fast-forward to end - Hotkey: Shift-G" type="button"
+                                    <button
+id="player-fast-forward" title="Fast-forward to end - Hotkey: Shift-G" type="button"
                                             className="btn btn-default btn-lg margin-right-btn"
-                                            onClick={this.fastForwardToEnd}>
+                                            onClick={this.fastForwardToEnd}
+                                    >
                                         <i className="fa fa-fast-forward" aria-hidden="true" />
                                     </button>
-                                    <button id="player-speed-down" title="Speed /2 - Hotkey: {" type="button"
-                                            className="btn btn-default btn-lg" onClick={this.speedDown}>
+                                    <button
+id="player-speed-down" title="Speed /2 - Hotkey: {" type="button"
+                                            className="btn btn-default btn-lg" onClick={this.speedDown}
+                                    >
                                         /2
                                     </button>
-                                    <button id="player-speed-reset" title="Reset Speed - Hotkey: Backspace" type="button"
-                                            className="btn btn-default btn-lg" onClick={this.speedReset}>
+                                    <button
+id="player-speed-reset" title="Reset Speed - Hotkey: Backspace" type="button"
+                                            className="btn btn-default btn-lg" onClick={this.speedReset}
+                                    >
                                         1:1
                                     </button>
-                                    <button id="player-speed-up" title="Speed x2 - Hotkey: }" type="button"
+                                    <button
+id="player-speed-up" title="Speed x2 - Hotkey: }" type="button"
                                             className="btn btn-default btn-lg margin-right-btn"
-                                            onClick={this.speedUp}>
+                                            onClick={this.speedUp}
+                                    >
                                         x2
                                     </button>
                                     <span id="player-speed">{speedStr}</span>
                                     <span style={to_right}>
                                         <span className="session_time">{formatDuration(this.currentTsPost)} / {formatDuration(this.buf.pos)}</span>
-                                        <button id="player-drag-pan" title="Drag'n'Pan" type="button" className="btn btn-default btn-lg"
-                                            onClick={this.dragPan}>
-                                            <i className={"fa fa-" + (this.state.drag_pan ? "hand-rock-o" : "hand-paper-o")}
-                                                aria-hidden="true" /></button>
-                                        <button id="player-zoom-in" title="Zoom In - Hotkey: =" type="button" className="btn btn-default btn-lg"
-                                            onClick={this.zoomIn} disabled={this.state.term_zoom_max}>
-                                            <i className="fa fa-search-plus" aria-hidden="true" /></button>
-                                        <button id="player-fit-to" title="Fit To - Hotkey: Z" type="button" className="btn btn-default btn-lg"
-                                            onClick={this.fitTo}><i className="fa fa-expand" aria-hidden="true" /></button>
-                                        <button id="player-zoom-out" title="Zoom Out - Hotkey: -" type="button" className="btn btn-default btn-lg"
-                                            onClick={this.zoomOut} disabled={this.state.term_zoom_min}>
-                                            <i className="fa fa-search-minus" aria-hidden="true" /></button>
+                                        <button
+id="player-drag-pan" title="Drag'n'Pan" type="button" className="btn btn-default btn-lg"
+                                            onClick={this.dragPan}
+                                        >
+                                            <i
+className={"fa fa-" + (this.state.drag_pan ? "hand-rock-o" : "hand-paper-o")}
+                                                aria-hidden="true"
+                                            />
+                                        </button>
+                                        <button
+id="player-zoom-in" title="Zoom In - Hotkey: =" type="button" className="btn btn-default btn-lg"
+                                            onClick={this.zoomIn} disabled={this.state.term_zoom_max}
+                                        >
+                                            <i className="fa fa-search-plus" aria-hidden="true" />
+                                        </button>
+                                        <button
+id="player-fit-to" title="Fit To - Hotkey: Z" type="button" className="btn btn-default btn-lg"
+                                            onClick={this.fitTo}
+                                        ><i className="fa fa-expand" aria-hidden="true" />
+                                        </button>
+                                        <button
+id="player-zoom-out" title="Zoom Out - Hotkey: -" type="button" className="btn btn-default btn-lg"
+                                            onClick={this.zoomOut} disabled={this.state.term_zoom_min}
+                                        >
+                                            <i className="fa fa-search-minus" aria-hidden="true" />
+                                        </button>
                                     </span>
                                     <div id="input-player-wrap">
                                         <InputPlayer input={this.state.input} />
@@ -1354,7 +1398,7 @@ export class Player extends React.Component {
                         </div>
                     </div>
                 </div>
-            </React.Fragment>
+            </>
         );
     }
 

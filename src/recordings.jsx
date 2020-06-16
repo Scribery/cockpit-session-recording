@@ -475,7 +475,7 @@ class Recording extends React.Component {
                         </div>
                         <div className="row">
                             <div className="col-md-12">
-                                <button className="btn btn-default" style={{"float":"left"}} onClick={this.handleLogsClick}>{_("Logs View")}</button>
+                                <button id="btn-logs-view" className="btn btn-default" style={{"float":"left"}} onClick={this.handleLogsClick}>{_("Logs View")}</button>
                             </div>
                         </div>
                         {this.state.logsEnabled === true &&
@@ -940,7 +940,7 @@ class View extends React.Component {
                                     </td>
                                     <td>
                                         <div className="input-group">
-                                            <input type="text" className="form-control" name="search" value={this.state.search}
+                                            <input type="text" id="recording-search" className="form-control" name="search" value={this.state.search}
                                                    onChange={this.handleInputChange} />
                                         </div>
                                     </td>

@@ -18,12 +18,16 @@ class TestApplication(MachineCase):
         self.login_and_go("/session-recording")
         b = self.browser
         m = self.machine
-        b.wait_present(".content-header-extra")
-        b.wait_present("#user")
+        b.wait_present("#app")
         return b, m
 
-    def _sel_rec(self, cond=":first()"):
-        self.browser.click(f".listing-ct-item{cond}")
+    def _sel_rec(self, index=0):
+        page = (
+            "0f25700a28c44b599869745e5fda8b0c-7106-121e79"
+            if not index
+            else "0f25700a28c44b599869745e5fda8b0c-7623-135541"
+        )
+        self.browser.go(f"/session-recording#/{page}")
 
     def _term_line(self, lineno):
         return f".xterm-accessibility-tree div:nth-child({lineno})"
@@ -35,18 +39,18 @@ class TestApplication(MachineCase):
         b.wait_in_text(self._term_line(1), "localhost")
 
     def testFastforwardControls(self):
-        slider = ".slider > .min-slider-handle"
+        progress = ".pf-c-progress__indicator"
 
         b, _ = self._login()
         self._sel_rec()
         # fast forward
         b.click("#player-fast-forward")
         b.wait_in_text(self._term_line(12), "exit")
-        b.wait_attr(slider, "style", "left: 100%;")
+        b.wait_attr(progress, "style", "width: 100%;")
         # test restart playback
         b.click("#player-restart")
         b.wait_text(self._term_line(1), "Blank line")
-        b.wait_attr(slider, "style", "left: 100%;")
+        b.wait_attr(progress, "style", "width: 100%;")
 
     def testSpeedControls(self):
         b, _ = self._login()
@@ -54,7 +58,6 @@ class TestApplication(MachineCase):
         # increase speed
         b.wait_present("#player-speed-up")
         b.click("#player-speed-up")
-        b.wait_present("#player-speed")
         b.wait_text("#player-speed", "x2")
         b.click("#player-speed-up")
         b.wait_text("#player-speed", "x4")
@@ -70,7 +73,6 @@ class TestApplication(MachineCase):
         b.click("#player-speed-down")
         b.wait_text("#player-speed", "x2")
         b.click("#player-speed-down")
-        b.wait_present("#player-speed")
         b.click("#player-speed-down")
         b.wait_text("#player-speed", "/2")
         b.click("#player-speed-down")
@@ -80,8 +82,7 @@ class TestApplication(MachineCase):
         b.click("#player-speed-down")
         b.wait_text("#player-speed", "/16")
         # restore speed
-        b.click("#player-speed-reset")
-        b.wait_present("#player-speed")
+        b.click(".pf-c-chip .pf-c-button")
         b.click("#player-speed-down")
         b.wait_text("#player-speed", "/2")
 
@@ -142,9 +143,7 @@ class TestApplication(MachineCase):
         import time, json, configparser
 
         b, m = self._login()
-        # Ensure that the button leads to the config page
         b.click("#btn-config")
-        b.enter_page("/session-recording/config")
 
         # TLOG config
         conf_file_path = "/etc/tlog/"
@@ -179,19 +178,22 @@ class TestApplication(MachineCase):
         m.upload([save_file], conf_file_path)
         # Check that the config reflects the changes
         conf = json.load(open(test_file, "r"))
-        assert json.dumps(conf) == json.dumps(
-            {
-                "shell": "/test/path/shell",
-                "notice": "Test Notice",
-                "latency": 1,
-                "payload": 2,
-                "log": {"input": True, "output": False, "window": False},
-                "limit": {"rate": 3, "burst": 4, "action": "drop"},
-                "file": {"path": "/test/path/file"},
-                "syslog": {"facility": "testfac", "priority": "info"},
-                "journal": {"priority": "info", "augment": False},
-                "writer": "file",
-            }
+        self.assertEqual(
+            json.dumps(conf),
+            json.dumps(
+                {
+                    "shell": "/test/path/shell",
+                    "notice": "Test Notice",
+                    "latency": 1,
+                    "payload": 2,
+                    "log": {"input": True, "output": False, "window": False},
+                    "limit": {"rate": 3, "burst": 4, "action": "drop"},
+                    "file": {"path": "/test/path/file"},
+                    "syslog": {"facility": "testfac", "priority": "info"},
+                    "journal": {"priority": "info", "augment": False},
+                    "writer": "file",
+                }
+            ),
         )
 
         # SSSD config
@@ -228,13 +230,13 @@ class TestApplication(MachineCase):
         # Check that the configs reflected the changes
         conf = configparser.ConfigParser()
         conf.read_file(open(test_none_file, "r"))
-        assert conf["session_recording"]["scope"] == "none"
+        self.assertEqual(conf["session_recording"]["scope"], "none")
         conf.read_file(open(test_some_file, "r"))
-        assert conf["session_recording"]["scope"] == "some"
-        assert conf["session_recording"]["users"] == "test users"
-        assert conf["session_recording"]["groups"] == "test groups"
+        self.assertEqual(conf["session_recording"]["scope"], "some")
+        self.assertEqual(conf["session_recording"]["users"], "test users")
+        self.assertEqual(conf["session_recording"]["groups"], "test groups")
         conf.read_file(open(test_all_file, "r"))
-        assert conf["session_recording"]["scope"] == "all"
+        self.assertEqual(conf["session_recording"]["scope"], "all")
 
     def testDisplayDrag(self):
         b, _ = self._login()
@@ -248,23 +250,22 @@ class TestApplication(MachineCase):
         b.click("#player-zoom-in")
         # select and ensure drag'n'pan mode
         b.click("#player-drag-pan")
-        b.wait_present(".fa-hand-rock-o")
         # scroll and check for screen movement
         b.mouse(".dragnpan", "mousedown", 200, 200)
         b.mouse(".dragnpan", "mousemove", 10, 10)
-        assert b.attr(".dragnpan", "scrollTop") != 0
-        assert b.attr(".dragnpan", "scrollLeft") != 0
+        self.assertNotEqual(b.attr(".dragnpan", "scrollTop"), 0)
+        self.assertNotEqual(b.attr(".dragnpan", "scrollLeft"), 0)
 
     def testLogCorrelation(self):
         b, _ = self._login()
         # select the recording with the extra logs
-        self._sel_rec(":contains('01:07')")
+        self._sel_rec(1)
         b.click("#btn-logs-view")
         # fast forward until the end
         while "exit" not in b.text(self._term_line(22)):
             b.click("#player-skip-frame")
         # check for extra log entries
-        b.wait_present(".cockpit-log-message:contains('authentication failure')")
+        b.wait_present(".pf-c-data-list:contains('authentication failure')")
 
     def testZoomSpeedControls(self):
         default_scale_sel = '.console-ct[style^="transform: scale(1)"]'
@@ -290,17 +291,20 @@ class TestApplication(MachineCase):
     def _filter(self, inp, occ_dict):
         import time
 
+        # allow temporary timestamp failures
+        self.allow_journal_messages(".*timestamp.*")
+        # login and test inputs
         b, _ = self._login()
         for occ in occ_dict:
             for term in occ_dict[occ]:
                 # enter the search term and wait for the results to return
                 b.set_input_text(inp, term)
-                time.sleep(0.5)
-                assert b.text(".listing-ct").count("contractor") == occ
+                time.sleep(2)
+                self.assertEqual(b.text(".pf-c-table").count("contractor"), occ)
 
     def testSearch(self):
         self._filter(
-            "#recording-search",
+            "#filter-search",
             {
                 0: {
                     "this should return nothing",
@@ -327,7 +331,7 @@ class TestApplication(MachineCase):
 
     def testFilterUsername(self):
         self._filter(
-            "#username-search",
+            "#filter-username",
             {
                 0: {"test", "contact", "contractor", "contractor11", "contractor4"},
                 2: {"contractor1"},
@@ -336,7 +340,7 @@ class TestApplication(MachineCase):
 
     def testFilterSince(self):
         self._filter(
-            "#since-search .bootstrap-datepicker",
+            "#filter-since",
             {
                 0: {"2020-06-02", "2020-06-01 12:31:00"},
                 1: {"2020-06-01 12:17:01", "2020-06-01 12:30:50"},
@@ -346,10 +350,10 @@ class TestApplication(MachineCase):
 
     def testFilterUntil(self):
         self._filter(
-            "#until-search .bootstrap-datepicker",
+            "#filter-until",
             {
-                0: {"2020-06-01", "2020-06-01 12:16:00"},
-                1: {"2020-06-01 12:17:00", "2020-06-01 12:29:42"},
+                0: {"2020-06-01", "2020-06-01 12:16"},
+                1: {"2020-06-01 12:17", "2020-06-01 12:29"},
                 2: {"2020-06-02", "2020-06-01 12:31:00"},
             },
         )

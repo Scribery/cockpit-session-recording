@@ -20,12 +20,45 @@
 import React from 'react';
 import './player.css';
 import { Terminal as Term } from 'xterm';
+import {
+    Button, Chip,
+    DataList,
+    DataListCell,
+    DataListItem,
+    DataListItemCells,
+    DataListItemRow,
+    Progress,
+    Toolbar,
+    ToolbarContent,
+    ToolbarItem,
+    ToolbarGroup,
+    ChipGroup,
+    InputGroup,
+    TextInput,
+    Accordion,
+    AccordionItem,
+    AccordionContent,
+    AccordionToggle,
+} from '@patternfly/react-core';
+import {
+    ArrowRightIcon,
+    ExpandIcon,
+    PauseIcon,
+    PlayIcon,
+    RedoIcon,
+    SearchMinusIcon,
+    SearchPlusIcon,
+    SearchIcon,
+    MinusIcon,
+    UndoIcon,
+    ThumbtackIcon,
+    MigrationIcon,
+} from '@patternfly/react-icons';
 const cockpit = require("cockpit");
 const _ = cockpit.gettext;
 const moment = require("moment");
 const Journal = require("journal");
 const $ = require("jquery");
-require("bootstrap-slider");
 
 const padInt = function (n, w) {
     const i = Math.floor(n);
@@ -596,10 +629,8 @@ class Search extends React.Component {
         };
     }
 
-    handleInputChange(event) {
+    handleInputChange(name, value) {
         event.preventDefault();
-        const name = event.target.name;
-        const value = event.target.value;
         const state = {};
         state[name] = value;
         this.setState(state);
@@ -619,7 +650,13 @@ class Search extends React.Component {
             return JSON.parse(item.MESSAGE);
         });
         items = items.map(item => {
-            return <SearchEntry key={item.id} fastForwardToTS={this.props.fastForwardToTS} pos={item.pos} />;
+            return (
+                <SearchEntry
+                    key={item.id}
+                    fastForwardToTS={this.props.fastForwardToTS}
+                    pos={item.pos}
+                />
+            );
         });
         this.setState({ items: items });
     }
@@ -643,18 +680,28 @@ class Search extends React.Component {
 
     render() {
         return (
-            <div className="search-wrap">
-                <div className="input-group search-component">
-                    <input type="text" className="form-control" name="search" value={this.state.search} onChange={this.handleInputChange} />
-                    <span className="input-group-btn">
-                        <button className="btn btn-default" onClick={this.handleSearchSubmit}><span className="glyphicon glyphicon-search" /></button>
-                        <button className="btn btn-default" onClick={this.clearSearchResults}><span className="glyphicon glyphicon-remove" /></button>
-                    </span>
-                </div>
-                <div className="search-results">
+            <ToolbarItem>
+                <InputGroup>
+                    <TextInput
+                        id="search_rec"
+                        type="search"
+                        value={this.state.search}
+                        onChange={value => this.handleInputChange("search", value)} />
+                    <Button
+                        variant="control"
+                        onClick={this.handleSearchSubmit}>
+                        <SearchIcon />
+                    </Button>
+                    <Button
+                        variant="control"
+                        onClick={this.clearSearchResults}>
+                        <MinusIcon />
+                    </Button>
+                </InputGroup>
+                <ToolbarItem>
                     {this.state.items}
-                </div>
-            </div>
+                </ToolbarItem>
+            </ToolbarItem>
         );
     }
 }
@@ -667,12 +714,6 @@ class InputPlayer extends React.Component {
             <textarea name="input" id="input-textarea" cols="30" rows="1" value={input} readOnly disabled />
         );
     }
-}
-
-function Slider(props) {
-    return (
-        <input id="slider" type="text" />
-    );
 }
 
 export class Player extends React.Component {
@@ -691,9 +732,6 @@ export class Player extends React.Component {
         this.speedReset = this.speedReset.bind(this);
         this.fastForwardToEnd = this.fastForwardToEnd.bind(this);
         this.skipFrame = this.skipFrame.bind(this);
-        this.initSlider = this.initSlider.bind(this);
-        this.slideStart = this.slideStart.bind(this);
-        this.slideStop = this.slideStop.bind(this);
         this.handleKeyDown = this.handleKeyDown.bind(this);
         this.sync = this.sync.bind(this);
         this.zoomIn = this.zoomIn.bind(this);
@@ -706,6 +744,8 @@ export class Player extends React.Component {
         this.fastForwardToTS = this.fastForwardToTS.bind(this);
         this.sendInput = this.sendInput.bind(this);
         this.clearInputPlayer = this.clearInputPlayer.bind(this);
+        this.handleInfoClick = this.handleInfoClick.bind(this);
+        this.handleProgressClick = this.handleProgressClick.bind(this);
 
         this.state = {
             cols:               80,
@@ -736,6 +776,8 @@ export class Player extends React.Component {
             scale:          1,
             input:          "",
             mark:           0,
+            infoEnabled:    false,
+            curTS:          0,
         };
 
         this.containerHeight = 400;
@@ -744,9 +786,6 @@ export class Player extends React.Component {
         this.error_service = new ErrorService();
         this.reportError = this.error_service.addMessage;
         this.buf = new PacketBuffer(this.props.matchList, this.reportError);
-
-        /* Slider component */
-        this.slider = null;
 
         /* Current recording time, ms */
         this.recTS = 0;
@@ -760,8 +799,6 @@ export class Player extends React.Component {
         /* Timeout ID of the current packet, null if none */
         this.timeout = null;
 
-        this.currentTsPost = 0;
-
         /* True if the next packet should be output without delay */
         this.skip = false;
         /* Playback speed */
@@ -771,9 +808,6 @@ export class Player extends React.Component {
          * Recording time, ms, or null if not fast-forwarding.
          */
         this.fastForwardTo = null;
-
-        /* Track paused state prior to slider movement */
-        this.pausedBeforeSlide = true;
     }
 
     reset() {
@@ -795,7 +829,6 @@ export class Player extends React.Component {
 
         /* Move to beginning of recording */
         this.recTS = 0;
-        this.currentTsPost = parseInt(this.recTS);
         /* Start the playback time */
         this.locTS = performance.now();
 
@@ -912,7 +945,6 @@ export class Player extends React.Component {
             /* Sync to the local time */
             this.locTS = nowLocTS;
 
-            this.slider.slider('setAttribute', 'max', this.buf.pos);
             /* If we are skipping one packet's delay */
             if (this.skip) {
                 this.skip = false;
@@ -934,8 +966,6 @@ export class Player extends React.Component {
                 this.recTS += locDelay * this.speed;
                 const pktRecDelay = this.pkt.pos - this.recTS;
                 const pktLocDelay = pktRecDelay / this.speed;
-                this.currentTsPost = parseInt(this.recTS);
-                this.slider.slider('setValue', this.currentTsPost);
                 /* If we're more than 5 ms early for this packet */
                 if (pktLocDelay > 5) {
                     /* Call us again on time, later */
@@ -948,8 +978,7 @@ export class Player extends React.Component {
             if (this.props.logsEnabled) {
                 this.props.onTsChange(this.pkt.pos);
             }
-            this.currentTsPost = parseInt(this.pkt.pos);
-            this.slider.slider('setValue', this.currentTsPost);
+            this.setState({ curTS: this.pkt.pos });
 
             /* Output the packet */
             if (this.pkt.is_io && !this.pkt.is_output) {
@@ -1027,36 +1056,6 @@ export class Player extends React.Component {
     skipFrame() {
         this.skip = true;
         this.sync();
-    }
-
-    initSlider() {
-        this.slider = $("#slider").slider({
-            value: 0,
-            tooltip: "hide",
-            enabled: false,
-        });
-        this.slider.slider('on', 'slideStart', this.slideStart);
-        this.slider.slider('on', 'slideStop', this.slideStop);
-        this.slider.slider('enable');
-    }
-
-    slideStart(e) {
-        /*
-         * Necessary because moving the slider position updates state.paused,
-         * which won't represent the actual paused state after this event is
-         * triggered
-         */
-        this.pausedBeforeSlide = this.state.paused;
-        this.pause();
-    }
-
-    slideStop(e) {
-        if (this.fastForwardToTS) {
-            this.fastForwardToTS(e);
-            if (this.pausedBeforeSlide === false) {
-                this.play();
-            }
-        }
     }
 
     handleKeyDown(event) {
@@ -1185,7 +1184,6 @@ export class Player extends React.Component {
         /* Reset playback */
         this.reset();
         this.fastForwardToTS(0);
-        this.initSlider();
     }
 
     componentDidUpdate(prevProps, prevState) {
@@ -1201,6 +1199,16 @@ export class Player extends React.Component {
         if (prevProps.logsTs != this.props.logsTs) {
             this.fastForwardToTS(this.props.logsTs);
         }
+    }
+
+    handleInfoClick() {
+        this.setState({ infoEnabled: !this.state.infoEnabled });
+    }
+
+    handleProgressClick(e) {
+        const progress = Math.min(1, Math.max(0, e.clientX / $(".pf-c-progress__bar").width()));
+        const ts = Math.round(progress * this.buf.pos);
+        this.fastForwardToTS(ts);
     }
 
     render() {
@@ -1236,168 +1244,226 @@ export class Player extends React.Component {
             position: "relative",
         };
 
-        const to_right = {
-            float: "right",
-        };
+        const playbackControls = (
+            <ToolbarGroup variant="icon-button-group">
+                <ToolbarItem>
+                    <Button
+                    variant="plain"
+                    id="player-play-pause"
+                    title="Play/Pause - Hotkey: p"
+                    type="button"
+                    onClick={this.playPauseToggle}
+                    >
+                        {this.state.paused ? <PlayIcon /> : <PauseIcon />}
+                    </Button>
+                </ToolbarItem>
+                <ToolbarItem>
+                    <Button
+                    variant="plain"
+                    id="player-skip-frame"
+                    title="Skip Frame - Hotkey: ."
+                    type="button"
+                    onClick={this.skipFrame}
+                    >
+                        <ArrowRightIcon />
+                    </Button>
+                </ToolbarItem>
+                <ToolbarItem>
+                    <Button
+                    variant="plain"
+                    id="player-restart"
+                    title="Restart Playback - Hotkey: Shift-R"
+                    type="button"
+                    onClick={this.rewindToStart}
+                    >
+                        <UndoIcon />
+                    </Button>
+                </ToolbarItem>
+                <ToolbarItem>
+                    <Button
+                    variant="plain"
+                    id="player-fast-forward"
+                    title="Fast-forward to end - Hotkey: Shift-G"
+                    type="button"
+                    onClick={this.fastForwardToEnd}
+                    >
+                        <RedoIcon />
+                    </Button>
+                </ToolbarItem>
+                <ToolbarItem>
+                    <Button
+                    variant="plain"
+                    id="player-speed-down"
+                    title="Speed /2 - Hotkey: {"
+                    type="button"
+                    onClick={this.speedDown}
+                    >
+                        /2
+                    </Button>
+                </ToolbarItem>
+                <ToolbarItem>
+                    <Button
+                    variant="plain"
+                    id="player-speed-up"
+                    title="Speed x2 - Hotkey: }"
+                    type="button"
+                    onClick={this.speedUp}
+                    >
+                        x2
+                    </Button>
+                </ToolbarItem>
+                {speedStr !== "" &&
+                <ToolbarItem>
+                    <ChipGroup categoryName="speed">
+                        <Chip onClick={this.speedReset}>
+                            <span id="player-speed">{speedStr}</span>
+                        </Chip>
+                    </ChipGroup>
+                </ToolbarItem>}
+            </ToolbarGroup>
+        );
+
+        const visualControls = (
+            <ToolbarGroup variant="icon-button-group" alignment={{ default: 'alignRight' }}>
+                <ToolbarItem>
+                    <Button
+                    variant="plain"
+                    id="player-drag-pan"
+                    title="Drag'n'Pan"
+                    onClick={this.dragPan}
+                    >
+                        {this.state.drag_pan ? <ThumbtackIcon /> : <MigrationIcon />}
+                    </Button>
+                </ToolbarItem>
+                <ToolbarItem>
+                    <Button
+                    variant="plain"
+                    id="player-zoom-in"
+                    title="Zoom In - Hotkey: ="
+                    type="button"
+                    onClick={this.zoomIn}
+                    disabled={this.state.term_zoom_max}
+                    >
+                        <SearchPlusIcon />
+                    </Button>
+                </ToolbarItem>
+                <ToolbarItem>
+                    <Button
+                    variant="plain"
+                    id="player-fit-to"
+                    title="Fit To - Hotkey: Z"
+                    type="button"
+                    onClick={this.fitTo}
+                    >
+                        <ExpandIcon />
+                    </Button>
+                </ToolbarItem>
+                <ToolbarItem>
+                    <Button
+                    variant="plain"
+                    id="player-zoom-out"
+                    title="Zoom Out - Hotkey: -"
+                    type="button"
+                    onClick={this.zoomOut}
+                    disabled={this.state.term_zoom_min}
+                    >
+                        <SearchMinusIcon />
+                    </Button>
+                </ToolbarItem>
+            </ToolbarGroup>
+        );
+
+        const panel = (
+            <Toolbar>
+                <ToolbarContent>
+                    {playbackControls}
+                    {visualControls}
+                    <InputPlayer input={this.state.input} />
+                    <Search
+                            matchList={this.props.matchList}
+                            fastForwardToTS={this.fastForwardToTS}
+                            play={this.play}
+                            pause={this.pause}
+                            paused={this.state.paused}
+                            errorService={this.error_service} />
+                    <ErrorList list={this.error_service.errors} />
+                </ToolbarContent>
+            </Toolbar>
+        );
+
+        const recordingInfo = (
+            <DataList isCompact>
+                {
+                    [
+                        { name: _("ID"), value: r.id },
+                        { name: _("Hostname"), value: r.hostname },
+                        { name: _("Boot ID"), value: r.boot_id },
+                        { name: _("Session ID"), value: r.session_id },
+                        { name: _("PID"), value: r.pid },
+                        { name: _("Start"), value: formatDateTime(r.start) },
+                        { name: _("End"), value: formatDateTime(r.end) },
+                        { name: _("Duration"), value: formatDuration(r.end - r.start) },
+                        { name: _("User"), value: r.user }
+                    ].map((item, index) =>
+                        <DataListItem key={index}>
+                            <DataListItemRow>
+                                <DataListItemCells
+                                    dataListCells={[
+                                        <DataListCell key="name">{item.name}</DataListCell>,
+                                        <DataListCell key="value">{item.value}</DataListCell>
+                                    ]} />
+                            </DataListItemRow>
+                        </DataListItem>
+                    )
+                }
+            </DataList>
+        );
+
+        const timeStr = formatDuration(this.state.curTS) +
+            " / " +
+            formatDuration(this.buf.pos);
 
         // ensure react never reuses this div by keying it with the terminal widget
         return (
             <>
-                <div className="row">
-                    <div id="recording-wrap">
-                        <div className="col-md-7 player-wrap">
-                            <div ref="wrapper" className="panel panel-default">
-                                <div className="panel-heading">
-                                    <span>{this.state.title}</span>
-                                </div>
-                                <div className="panel-body">
-                                    <div className={(this.state.drag_pan ? "dragnpan" : "")} style={scrollwrap} ref="scrollwrap">
-                                        <div ref="term" className="console-ct" key={this.state.term} style={style} />
-                                    </div>
-                                </div>
-                                <div className="panel-footer">
-                                    <Slider />
-                                    <button
-id="player-play-pause" title="Play/Pause - Hotkey: p" type="button" ref="playbtn"
-                                            className="btn btn-default btn-lg margin-right-btn play-btn"
-                                            onClick={this.playPauseToggle}
-                                    >
-                                        <i
-className={"fa fa-" + (this.state.paused ? "play" : "pause")}
-                                           aria-hidden="true"
-                                        />
-                                    </button>
-                                    <button
-id="player-skip-frame" title="Skip Frame - Hotkey: ." type="button"
-                                            className="btn btn-default btn-lg margin-right-btn"
-                                            onClick={this.skipFrame}
-                                    >
-                                        <i className="fa fa-step-forward" aria-hidden="true" />
-                                    </button>
-                                    <button
-id="player-restart" title="Restart Playback - Hotkey: Shift-R" type="button"
-                                            className="btn btn-default btn-lg" onClick={this.rewindToStart}
-                                    >
-                                        <i className="fa fa-fast-backward" aria-hidden="true" />
-                                    </button>
-                                    <button
-id="player-fast-forward" title="Fast-forward to end - Hotkey: Shift-G" type="button"
-                                            className="btn btn-default btn-lg margin-right-btn"
-                                            onClick={this.fastForwardToEnd}
-                                    >
-                                        <i className="fa fa-fast-forward" aria-hidden="true" />
-                                    </button>
-                                    <button
-id="player-speed-down" title="Speed /2 - Hotkey: {" type="button"
-                                            className="btn btn-default btn-lg" onClick={this.speedDown}
-                                    >
-                                        /2
-                                    </button>
-                                    <button
-id="player-speed-reset" title="Reset Speed - Hotkey: Backspace" type="button"
-                                            className="btn btn-default btn-lg" onClick={this.speedReset}
-                                    >
-                                        1:1
-                                    </button>
-                                    <button
-id="player-speed-up" title="Speed x2 - Hotkey: }" type="button"
-                                            className="btn btn-default btn-lg margin-right-btn"
-                                            onClick={this.speedUp}
-                                    >
-                                        x2
-                                    </button>
-                                    <span id="player-speed">{speedStr}</span>
-                                    <span style={to_right}>
-                                        <span className="session_time">{formatDuration(this.currentTsPost)} / {formatDuration(this.buf.pos)}</span>
-                                        <button
-id="player-drag-pan" title="Drag'n'Pan" type="button" className="btn btn-default btn-lg"
-                                            onClick={this.dragPan}
-                                        >
-                                            <i
-className={"fa fa-" + (this.state.drag_pan ? "hand-rock-o" : "hand-paper-o")}
-                                                aria-hidden="true"
-                                            />
-                                        </button>
-                                        <button
-id="player-zoom-in" title="Zoom In - Hotkey: =" type="button" className="btn btn-default btn-lg"
-                                            onClick={this.zoomIn} disabled={this.state.term_zoom_max}
-                                        >
-                                            <i className="fa fa-search-plus" aria-hidden="true" />
-                                        </button>
-                                        <button
-id="player-fit-to" title="Fit To - Hotkey: Z" type="button" className="btn btn-default btn-lg"
-                                            onClick={this.fitTo}
-                                        ><i className="fa fa-expand" aria-hidden="true" />
-                                        </button>
-                                        <button
-id="player-zoom-out" title="Zoom Out - Hotkey: -" type="button" className="btn btn-default btn-lg"
-                                            onClick={this.zoomOut} disabled={this.state.term_zoom_min}
-                                        >
-                                            <i className="fa fa-search-minus" aria-hidden="true" />
-                                        </button>
-                                    </span>
-                                    <div id="input-player-wrap">
-                                        <InputPlayer input={this.state.input} />
-                                    </div>
-                                    <div>
-                                        <Search matchList={this.props.matchList} fastForwardToTS={this.fastForwardToTS} play={this.play} pause={this.pause} paused={this.state.paused} errorService={this.error_service} />
-                                    </div>
-                                    <div className="clearfix" />
-                                    <ErrorList list={this.error_service.errors} />
-                                </div>
-                            </div>
+                <div ref="wrapper" className="panel panel-default">
+                    <div className="panel-heading">
+                        <span>{this.state.title}</span>
+                    </div>
+                    <div className="panel-body">
+                        <div
+                            className={(this.state.drag_pan ? "dragnpan" : "")}
+                            style={scrollwrap}
+                            ref="scrollwrap">
+                            <div
+                                ref="term"
+                                className="console-ct"
+                                key={this.state.term}
+                                style={style} />
                         </div>
                     </div>
-                    <div className="col-md-5">
-                        <div className="panel panel-default">
-                            <div className="panel-heading">
-                                <span>{_("Recording")}</span>
-                            </div>
-                            <div className="panel-body">
-                                <table className="form-table-ct">
-                                    <tbody>
-                                        <tr>
-                                            <td>{_("ID")}</td>
-                                            <td>{r.id}</td>
-                                        </tr>
-                                        <tr>
-                                            <td>{_("Hostname")}</td>
-                                            <td>{r.hostname}</td>
-                                        </tr>
-                                        <tr>
-                                            <td>{_("Boot ID")}</td>
-                                            <td>{r.boot_id}</td>
-                                        </tr>
-                                        <tr>
-                                            <td>{_("Session ID")}</td>
-                                            <td>{r.session_id}</td>
-                                        </tr>
-                                        <tr>
-                                            <td>{_("PID")}</td>
-                                            <td>{r.pid}</td>
-                                        </tr>
-                                        <tr>
-                                            <td>{_("Start")}</td>
-                                            <td>{formatDateTime(r.start)}</td>
-                                        </tr>
-                                        <tr>
-                                            <td>{_("End")}</td>
-                                            <td>{formatDateTime(r.end)}</td>
-                                        </tr>
-                                        <tr>
-                                            <td>{_("Duration")}</td>
-                                            <td>{formatDuration(r.end - r.start)}</td>
-                                        </tr>
-                                        <tr>
-                                            <td>{_("User")}</td>
-                                            <td>{r.user}</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
+                    <Progress
+                        min={0}
+                        max={this.buf.pos}
+                        valueText={timeStr}
+                        label={timeStr}
+                        value={this.state.curTS}
+                        onClick={this.handleProgressClick} />
+                    {panel}
                 </div>
+                <Accordion>
+                    <AccordionItem>
+                        <AccordionToggle
+                            id="btn-recording-info"
+                            onClick={this.handleInfoClick}
+                            isExpanded={this.state.infoEnabled === true}>
+                            {_("Recording Info")}
+                        </AccordionToggle>
+                        <AccordionContent isHidden={this.state.infoEnabled === false}>
+                            {recordingInfo}
+                        </AccordionContent>
+                    </AccordionItem>
+                </Accordion>
             </>
         );
     }

@@ -4,7 +4,7 @@
   <metadata_license>CC0-1.0</metadata_license>
   <name>Session Recording</name>
   <summary>
-    Provides Session Recording module for Cockpit.
+    Session Recording module for Cockpit
   </summary>
   <description>
     <p>
@@ -13,5 +13,5 @@
     </p>
   </description>
   <extends>org.cockpit_project.cockpit</extends>
-  <launchable type="cockpit-manifest">cockpit-session-recording</launchable>
+  <launchable type="cockpit-manifest">session-recording</launchable>
 </component>

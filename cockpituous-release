@@ -8,11 +8,11 @@
 # Check cockpituous documentation for available release targets.
 
 RELEASE_SOURCE="_release/source"
-RELEASE_SPEC="cockpit-starter-kit.spec"
+RELEASE_SPEC="cockpit-session-recording.spec"
 RELEASE_SRPM="_release/srpm"
 
 job release-source
-job release-srpm
+job release-srpm -V
 
 # Once you have a Fedora package and add the https://pagure.io/user/cockpit
 # user to your project's maintainers, you can also upload to Fedora automatically:

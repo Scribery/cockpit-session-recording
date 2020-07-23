@@ -19,7 +19,6 @@
 
 import PropTypes from 'prop-types';
 import React from 'react';
-import './listing.less';
 
 /* entry for an alert in the listing, can be expanded (with details) or standard
  * rowId optional: an identifier for the row which will be set as "data-row-id" attribute on the <tr>
@@ -73,10 +72,10 @@ export class ListingRow extends React.Component {
         if (!e || e.button !== 0)
             return;
 
-        let willBeExpanded = !this.state.expanded && this.props.tabRenderers.length > 0;
+        const willBeExpanded = !this.state.expanded && this.props.tabRenderers.length > 0;
         this.setState({ expanded: willBeExpanded });
 
-        let loadedTabs = {};
+        const loadedTabs = {};
         // unload all tabs if not expanded
         if (willBeExpanded) {
             // see if we should preload some tabs
@@ -108,7 +107,7 @@ export class ListingRow extends React.Component {
         if (!e || e.button !== 0)
             return;
 
-        let selected = !this.state.selected;
+        const selected = !this.state.selected;
         this.setState({ selected: selected });
 
         if (this.props.selectChanged)
@@ -122,9 +121,9 @@ export class ListingRow extends React.Component {
         // only consider primary mouse button
         if (!e || e.button !== 0)
             return;
-        let prevTab = this.state.activeTab;
+        const prevTab = this.state.activeTab;
         let prevTabPresence = 'default';
-        let loadedTabs = this.state.loadedTabs;
+        const loadedTabs = this.state.loadedTabs;
         if (prevTab !== tabIdx) {
             // see if we need to unload the previous tab
             if ('presence' in this.props.tabRenderers[prevTab])
@@ -142,11 +141,11 @@ export class ListingRow extends React.Component {
     }
 
     render() {
-        let self = this;
+        const self = this;
         // only enable navigation if a function is provided and the row isn't expanded (prevent accidental navigation)
-        let allowNavigate = !!this.props.navigateToItem && !this.state.expanded;
+        const allowNavigate = !!this.props.navigateToItem && !this.state.expanded;
 
-        let headerEntries = this.props.columns.map((itm, index) => {
+        const headerEntries = this.props.columns.map((itm, index) => {
             if (typeof itm === 'string' || typeof itm === 'number' || itm === null || itm === undefined || itm instanceof String || React.isValidElement(itm))
                 return (<td key={index}>{itm}</td>);
             else if ('header' in itm && itm.header)
@@ -157,23 +156,21 @@ export class ListingRow extends React.Component {
                 return (<td key={index}>{itm.name}</td>);
         });
 
-        let allowExpand = (this.props.tabRenderers.length > 0);
+        const allowExpand = (this.props.tabRenderers.length > 0);
         let expandToggle;
         if (allowExpand) {
-            expandToggle = <td key="expandToggle" className="listing-ct-toggle" onClick={ allowNavigate ? this.handleExpandClick : undefined }>
-                <i className="fa fa-fw" />
-            </td>;
+            expandToggle = <td key="expandToggle" className="listing-ct-toggle" onClick={ allowNavigate ? this.handleExpandClick : undefined }><i className="fa fa-fw" /></td>;
         } else {
             expandToggle = <td key="expandToggle-empty" className="listing-ct-toggle" />;
         }
 
-        let listingItemClasses = ["listing-ct-item"];
+        const listingItemClasses = ["listing-ct-item"];
         if (!allowNavigate)
             listingItemClasses.push("listing-ct-nonavigate");
         if (!allowExpand)
             listingItemClasses.push("listing-ct-noexpand");
 
-        let allowSelect = !(allowNavigate || allowExpand) && (this.state.selected !== undefined);
+        const allowSelect = !(allowNavigate || allowExpand) && (this.state.selected !== undefined);
         let clickHandler;
         if (allowSelect) {
             clickHandler = this.handleSelectClick;
@@ -186,24 +183,26 @@ export class ListingRow extends React.Component {
                 clickHandler = this.handleExpandClick;
         }
 
-        let listingItem = (
-            <tr data-row-id={ this.props.rowId }
+        const listingItem = (
+            <tr
+data-row-id={ this.props.rowId }
                 className={ listingItemClasses.join(' ') }
-                onClick={clickHandler}>
+                onClick={clickHandler}
+            >
                 {expandToggle}
                 {headerEntries}
             </tr>
         );
 
         if (this.state.expanded) {
-            let links = this.props.tabRenderers.map((itm, idx) => {
+            const links = this.props.tabRenderers.map((itm, idx) => {
                 return (
-                    <li key={idx} className={ (idx === self.state.activeTab) ? "active" : ""} >
+                    <li key={idx} className={ (idx === self.state.activeTab) ? "active" : ""}>
                         <a href="#" tabIndex="0" onClick={ self.handleTabClick.bind(self, idx) }>{itm.name}</a>
                     </li>
                 );
             });
-            let tabs = [];
+            const tabs = [];
             let tabIdx;
             let Renderer;
             let rendererData;
@@ -289,7 +288,7 @@ ListingRow.propTypes = {
  * - actions: additional listing-wide actions (displayed next to the list's title)
  */
 export const Listing = (props) => {
-    let bodyClasses = ["listing", "listing-ct"];
+    const bodyClasses = ["listing", "listing-ct"];
     if (props.fullWidth)
         bodyClasses.push("listing-ct-wide");
     let headerClasses;

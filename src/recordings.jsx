@@ -19,26 +19,61 @@
 "use strict";
 
 import React from "react";
-import ReactDOM from "react-dom";
+import {
+    Bullseye,
+    Button,
+    Card,
+    CardBody,
+    DataList,
+    DataListCell,
+    DataListItem,
+    DataListItemCells,
+    DataListItemRow,
+    EmptyState,
+    EmptyStateBody,
+    EmptyStateIcon,
+    EmptyStateVariant,
+    ExpandableSection,
+    Spinner,
+    Title,
+    TextInput,
+    Toolbar,
+    ToolbarContent,
+    ToolbarItem,
+    ToolbarGroup,
+} from "@patternfly/react-core";
+import {
+    sortable,
+    SortByDirection,
+    Table,
+    TableHeader,
+    TableBody
+} from "@patternfly/react-table";
+import {
+    AngleLeftIcon,
+    CogIcon,
+    ExclamationCircleIcon,
+    ExclamationTriangleIcon,
+    PlusIcon,
+    SearchIcon
+} from "@patternfly/react-icons";
+import { global_danger_color_200 } from "@patternfly/react-tokens";
 
-let $ = require("jquery");
-let cockpit = require("cockpit");
-let _ = cockpit.gettext;
-let moment = require("moment");
-let Journal = require("journal");
-let Listing = require("cockpit-components-listing.jsx");
-let Player = require("./player.jsx");
-
-require("bootstrap-datetime-picker/js/bootstrap-datetimepicker.js");
-require("bootstrap-datetime-picker/css/bootstrap-datetimepicker.css");
+const $ = require("jquery");
+const cockpit = require("cockpit");
+const _ = cockpit.gettext;
+const moment = require("moment");
+const Journal = require("journal");
+const Player = require("./player.jsx");
+const Config = require("./config.jsx");
 
 /*
  * Convert a number to integer number string and pad with zeroes to
  * specified width.
  */
-let padInt = function (n, w) {
-    let i = Math.floor(n);
-    let a = Math.abs(i);
+const padInt = function (n, w) {
+    const i = Math.floor(n);
+    const a = Math.abs(i);
     let s = a.toString();
     for (w -= s.length; w > 0; w--) {
         s = '0' + s;
@@ -49,16 +84,16 @@ let padInt = function (n, w) {
 /*
  * Format date and time for a number of milliseconds since Epoch.
  */
-let formatDateTime = function (ms) {
+const formatDateTime = function (ms) {
     return moment(ms).format("YYYY-MM-DD HH:mm:ss");
 };
 
-let formatDateTimeOffset = function (ms, offset) {
+const formatDateTimeOffset = function (ms, offset) {
     return moment(ms).utcOffset(offset)
             .format("YYYY-MM-DD HH:mm:ss");
 };
 
-let formatUTC = function(date) {
+const formatUTC = function(date) {
     return moment(date).utc()
             .format("YYYY-MM-DD HH:mm:ss") + " UTC";
 };
@@ -66,14 +101,14 @@ let formatUTC = function(date) {
 /*
  * Format a time interval from a number of milliseconds.
  */
-let formatDuration = function (ms) {
+const formatDuration = function (ms) {
     let v = Math.floor(ms / 1000);
-    let s = Math.floor(v % 60);
+    const s = Math.floor(v % 60);
     v = Math.floor(v / 60);
-    let m = Math.floor(v % 60);
+    const m = Math.floor(v % 60);
     v = Math.floor(v / 60);
-    let h = Math.floor(v % 24);
-    let d = Math.floor(v / 24);
+    const h = Math.floor(v % 24);
+    const d = Math.floor(v / 24);
     let str = '';
 
     if (d > 0) {
@@ -89,100 +124,13 @@ let formatDuration = function (ms) {
     return (ms < 0 ? '-' : '') + str;
 };
 
-let parseDate = function(date) {
-    let regex = new RegExp(/^\s*(\d\d\d\d-\d\d-\d\d)(\s+(\d\d:\d\d(:\d\d)?))?\s*$/);
-
-    let captures = regex.exec(date);
-
-    if (captures != null) {
-        let date = captures[1];
-        if (captures[3]) {
-            date = date + " " + captures[3];
-        }
-        if (moment(date, ["YYYY-M-D H:m:s", "YYYY-M-D H:m", "YYYY-M-D"], true).isValid()) {
-            return date;
-        }
-    }
-
-    if (date === "" || date === null) {
-        return true;
-    }
-
-    return false;
-};
-
-/*
- * A component representing a date & time picker based on bootstrap-datetime-picker.
- * Requires jQuery, bootstrap-datetime-picker, moment.js
- * Properties:
- * - onChange: function to call on date change event of datepicker.
- * - value: variable to pass which will be used as initial value.
- */
-class Datetimepicker extends React.Component {
-    constructor(props) {
-        super(props);
-        this.handleDateChange = this.handleDateChange.bind(this);
-        this.clearField = this.clearField.bind(this);
-        this.state = {
-            invalid: false,
-            date: this.props.value,
-        };
-    }
-
-    componentDidMount() {
-        $(this.refs.datepicker).datetimepicker({
-            format: 'yyyy-mm-dd hh:ii:00',
-            autoclose: true,
-            todayBtn: true,
-        })
-                .on('changeDate', this.handleDateChange);
-        // remove datepicker from input, so it only works by button press
-        $(this.refs.datepicker_input).datetimepicker('remove');
-    }
-
-    componentWillUnmount() {
-        $(this.refs.datepicker).datetimepicker('remove');
-    }
-
-    handleDateChange() {
-        const date = $(this.refs.datepicker_input).val();
-        this.setState({invalid: false, date: date});
-        if (!parseDate(date)) {
-            this.setState({invalid: true});
-        } else {
-            this.props.onChange(date);
-        }
-    }
-
-    clearField() {
-        const date = "";
-        this.props.onChange(date);
-        this.setState({date: date, invalid: false});
-        $(this.refs.datepicker_input).val("");
-    }
-
-    render() {
-        return (
-            <div ref="datepicker" className="input-group date input-append date form_datetime">
-                <input ref="datepicker_input" type="text" size="16"
-                    className={"form-control bootstrap-datepicker " + (this.state.invalid ? "invalid" : "valid")}
-                    value={this.state.date} onChange={this.handleDateChange} />
-                <span className="input-group-addon add-on"><i className="fa fa-calendar" /></span>
-                <span className="input-group-addon add-on" onClick={this.clearField}>
-                    <i className="fa fa-remove" /></span>
-            </div>
-        );
-    }
-}
-
 function LogElement(props) {
     const entry = props.entry;
     const start = props.start;
-    const end = props.end;
     const cursor = entry.__CURSOR;
     const entry_timestamp = parseInt(entry.__REALTIME_TIMESTAMP / 1000);
 
-    const timeClick = function(e) {
+    const timeClick = function(_e) {
         const ts = entry_timestamp - start;
         if (ts > 0) {
             props.jumpToTs(ts);
@@ -196,33 +144,38 @@ function LogElement(props) {
         win.focus();
     };
 
-    let className = 'cockpit-logline';
-    if (start < entry_timestamp && end > entry_timestamp) {
-        className = 'cockpit-logline highlighted';
-    }
+    const cells = <DataListItemCells
+                        dataListCells={[
+                            <DataListCell key="row">
+                                <ExclamationTriangleIcon />
+                                <Button variant="link" onClick={timeClick}>
+                                    {formatDateTime(entry_timestamp)}
+                                </Button>
+                                <Card isSelectable onClick={messageClick}>
+                                    <CardBody>{entry.MESSAGE}</CardBody>
+                                </Card>
+                            </DataListCell>
+                        ]} />;
 
     return (
-        <div className={className} data-cursor={cursor} key={cursor}>
-            <div className="cockpit-log-warning">
-                <i className="fa fa-exclamation-triangle" />
-            </div>
-            <div className="logs-view-log-time" onClick={timeClick}>{formatDateTime(entry_timestamp)}</div>
-            <span className="cockpit-log-message" onClick={messageClick}>{entry.MESSAGE}</span>
-        </div>
+        <DataListItem>
+            <DataListItemRow>{cells}</DataListItemRow>
+        </DataListItem>
     );
 }
 
 function LogsView(props) {
-    const entries = props.entries;
-    const start = props.start;
-    const end = props.end;
+    const { entries, start, end } = props;
     const rows = entries.map((entry) =>
-        <LogElement key={entry.__CURSOR} entry={entry} start={start} end={end} jumpToTs={props.jumpToTs} />
+        <LogElement
+            key={entry.__CURSOR}
+            entry={entry}
+            start={start}
+            end={end}
+            jumpToTs={props.jumpToTs} />
     );
     return (
-        <div className="panel panel-default cockpit-log-panel" id="logs-view">
-            {rows}
-        </div>
+        <DataList>{rows}</DataList>
     );
 }
 
@@ -252,21 +205,11 @@ class Logs extends React.Component {
     getServerTimeOffset() {
         cockpit.spawn(["date", "+%s:%:z"], { err: "message" })
                 .done((data) => {
-                    this.setState({serverTimeOffset: data.slice(data.indexOf(":") + 1)});
+                    this.setState({ serverTimeOffset: data.slice(data.indexOf(":") + 1) });
                 })
                 .fail((ex) => {
                     console.log("Couldn't calculate server time offset: " + cockpit.message(ex));
                 });
-    }
-
-    scrollToTop() {
-        const logs_view = document.getElementById("logs-view");
-        logs_view.scrollTop = 0;
-    }
-
-    scrollToBottom() {
-        const logs_view = document.getElementById("logs-view");
-        logs_view.scrollTop = logs_view.scrollHeight;
     }
 
     journalctlError(error) {
@@ -277,14 +220,13 @@ class Logs extends React.Component {
         if (entryList.length > 0) {
             this.entries.push(...entryList);
             const after = this.entries[this.entries.length - 1].__CURSOR;
-            this.setState({entries: this.entries, after: after});
-            this.scrollToBottom();
+            this.setState({ entries: this.entries, after: after });
         }
     }
 
     journalctlPrepend(entryList) {
         entryList.push(...this.entries);
-        this.setState({entries: this.entries});
+        this.setState({ entries: this.entries });
     }
 
     getLogs() {
@@ -294,7 +236,7 @@ class Logs extends React.Component {
                 this.journalCtl = null;
             }
 
-            let matches = [];
+            const matches = [];
             if (this.hostname) {
                 matches.push("_HOSTNAME=" + this.hostname);
             }
@@ -310,7 +252,7 @@ class Logs extends React.Component {
                 end = formatDateTime(this.end);
             }
 
-            let options = {
+            const options = {
                 since: start,
                 until: end,
                 follow: false,
@@ -319,7 +261,7 @@ class Logs extends React.Component {
             };
 
             if (this.state.after != null) {
-                options["after"] = this.state.after;
+                options.after = this.state.after;
                 delete options.since;
             }
 
@@ -375,20 +317,36 @@ class Logs extends React.Component {
     }
 
     render() {
-        let r = this.props.recording;
+        const r = this.props.recording;
         if (r == null) {
-            return <span>Loading...</span>;
+            return (
+                <Bullseye>
+                    <EmptyState variant={EmptyStateVariant.small}>
+                        <Spinner />
+                        <Title headingLevel="h2" size="lg">
+                            {_("Loading...")}
+                        </Title>
+                    </EmptyState>
+                </Bullseye>
+            );
         } else {
             return (
-                <div className="panel panel-default">
-                    <div className="panel-heading">
-                        <span>{_("Logs")}</span>
-                        <button className="btn btn-default" style={{"float":"right"}} onClick={this.loadLater}>{_("Load later entries")}</button>
-                    </div>
-                    <LogsView entries={this.state.entries} start={this.props.recording.start}
-                              end={this.props.recording.end} jumpToTs={this.props.jumpToTs} />
-                    <div className="panel-heading" />
-                </div>
+                <>
+                    <LogsView
+                        id="logs-view"
+                        entries={this.state.entries}
+                        start={this.props.recording.start}
+                        end={this.props.recording.end}
+                        jumpToTs={this.props.jumpToTs} />
+                    <Bullseye>
+                        <Button
+                            variant="secondary"
+                            icon={<PlusIcon />}
+                            onClick={this.loadLater}>
+                            {_("Load later entries")}
+                        </Button>
+                    </Bullseye>
+                </>
             );
         }
     }
@@ -416,20 +374,20 @@ class Recording extends React.Component {
     }
 
     handleTsChange(ts) {
-        this.setState({curTs: ts});
+        this.setState({ curTs: ts });
     }
 
     handleLogTsChange(ts) {
-        this.setState({logsTs: ts});
+        this.setState({ logsTs: ts });
     }
 
     handleLogsClick() {
-        this.setState({logsEnabled: !this.state.logsEnabled});
+        this.setState({ logsEnabled: !this.state.logsEnabled });
     }
 
     handleLogsReset() {
-        this.setState({logsEnabled: false}, () => {
-            this.setState({logsEnabled: true});
+        this.setState({ logsEnabled: false }, () => {
+            this.setState({ logsEnabled: true });
         });
     }
 
@@ -445,47 +403,44 @@ class Recording extends React.Component {
     }
 
     render() {
-        let r = this.props.recording;
+        const r = this.props.recording;
         if (r == null) {
-            return <span>Loading...</span>;
-        } else {
-            let player =
-                (<Player.Player
-                    ref="player"
-                    matchList={this.props.recording.matchList}
-                    logsTs={this.logsTs}
-                    search={this.props.search}
-                    onTsChange={this.handleTsChange}
-                    recording={r}
-                    logsEnabled={this.state.logsEnabled}
-                    onRewindStart={this.handleLogsReset} />);
-
             return (
-                <React.Fragment>
-                    <div className="container-fluid">
-                        <div className="row">
-                            <div className="col-md-12">
-                                <ol className="breadcrumb">
-                                    <li><a onClick={this.goBackToList}>{_("Session Recording")}</a></li>
-                                    <li className="active">{_("Session")}</li>
-                                </ol>
-                            </div>
-                            {player}
-                        </div>
-                        <div className="row">
-                            <div className="col-md-12">
-                                <button id="btn-logs-view" className="btn btn-default" style={{"float":"left"}} onClick={this.handleLogsClick}>{_("Logs View")}</button>
-                            </div>
-                        </div>
-                        {this.state.logsEnabled === true &&
-                        <div className="row">
-                            <div className="col-md-12">
-                                <Logs recording={this.props.recording} curTs={this.state.curTs} jumpToTs={this.handleLogTsChange} />
-                            </div>
-                        </div>
-                        }
-                    </div>
-                </React.Fragment>
+                <Bullseye>
+                    <EmptyState variant={EmptyStateVariant.small}>
+                        <Spinner />
+                        <Title headingLevel="h2" size="lg">
+                            {_("Loading...")}
+                        </Title>
+                    </EmptyState>
+                </Bullseye>
+            );
+        } else {
+            return (
+                <>
+                    <Button variant="link" icon={<AngleLeftIcon />} onClick={this.goBackToList}>
+                        {_("Session Recording")}
+                    </Button>
+                    <Player.Player
+                        ref="player"
+                        matchList={this.props.recording.matchList}
+                        logsTs={this.logsTs}
+                        search={this.props.search}
+                        onTsChange={this.handleTsChange}
+                        recording={r}
+                        logsEnabled={this.state.logsEnabled}
+                        onRewindStart={this.handleLogsReset} />
+                    <ExpandableSection
+                        id="btn-logs-view"
+                        toggleText={_("Logs View")}
+                        onToggle={this.handleLogsClick}
+                        isExpanded={this.state.logsEnabled === true}>
+                        <Logs
+                            recording={this.props.recording}
+                            curTs={this.state.curTs}
+                            jumpToTs={this.handleLogTsChange} />
+                    </ExpandableSection>
+                </>
             );
         }
     }
@@ -499,119 +454,82 @@ class Recording extends React.Component {
 class RecordingList extends React.Component {
     constructor(props) {
         super(props);
-        this.handleColumnClick = this.handleColumnClick.bind(this);
-        this.getSortedList = this.getSortedList.bind(this);
-        this.drawSortDir = this.drawSortDir.bind(this);
-        this.getColumnTitles = this.getColumnTitles.bind(this);
-        this.getColumns = this.getColumns.bind(this);
+
+        this.onSort = this.onSort.bind(this);
+        this.rowClickHandler = this.rowClickHandler.bind(this);
         this.state = {
-            sorting_field: "start",
-            sorting_asc: true,
+            sortBy: {
+                index: 1,
+                direction: SortByDirection.asc
+            }
         };
     }
 
-    drawSortDir() {
-        $('#sort_arrow').remove();
-        let type = this.state.sorting_asc ? "asc" : "desc";
-        let arrow = '<i id="sort_arrow" class="fa fa-sort-' + type + '" aria-hidden="true" />';
-        $(this.refs[this.state.sorting_field]).append(arrow);
+    onSort(_event, index, direction) {
+        this.setState({
+            sortBy: {
+                index,
+                direction
+            },
+        });
     }
 
-    handleColumnClick(event) {
-        if (this.state.sorting_field === event.currentTarget.id) {
-            this.setState({sorting_asc: !this.state.sorting_asc});
-        } else {
-            this.setState({
-                sorting_field: event.currentTarget.id,
-                sorting_asc: true,
-            });
-        }
-    }
-
-    getSortedList() {
-        let field = this.state.sorting_field;
-        let asc = this.state.sorting_asc;
-        let list = this.props.list.slice();
-        let isNumeric;
-
-        if (field === "start" || field === "end" || field === "duration") {
-            isNumeric = true;
-        }
-
-        if (isNumeric) {
-            list.sort((a, b) => a[field] - b[field]);
-        } else {
-            list.sort((a, b) => (a[field] > b[field]) ? 1 : -1);
-        }
-
-        if (!asc) {
-            list.reverse();
-        }
-
-        return list;
-    }
-
-    /*
-     * Set the cockpit location to point to the specified recording.
-     */
-    navigateToRecording(recording) {
-        cockpit.location.go([recording.id], cockpit.location.options);
-    }
-
-    componentDidUpdate() {
-        this.drawSortDir();
-    }
-
-    getColumnTitles() {
-        let columnTitles = [
-            (<div id="user" className="sort" onClick={this.handleColumnClick}><span>{_("User")}</span> <div
-                ref="user" className="sort-icon" /></div>),
-            (<div id="start" className="sort" onClick={this.handleColumnClick}><span>{_("Start")}</span> <div
-                ref="start" className="sort-icon" /></div>),
-            (<div id="end" className="sort" onClick={this.handleColumnClick}><span>{_("End")}</span> <div
-                ref="end" className="sort-icon" /></div>),
-            (<div id="duration" className="sort" onClick={this.handleColumnClick}><span>{_("Duration")}</span> <div
-                ref="duration" className="sort-icon" /></div>),
-        ];
-        if (this.props.diff_hosts === true) {
-            columnTitles.push((<div id="hostname" className="sort" onClick={this.handleColumnClick}>
-                <span>{_("Hostname")}</span> <div ref="hostname" className="sort-icon" /></div>));
-        }
-        return columnTitles;
-    }
-
-    getColumns(r) {
-        let columns = [r.user,
-            formatDateTime(r.start),
-            formatDateTime(r.end),
-            formatDuration(r.end - r.start)];
-        if (this.props.diff_hosts === true) {
-            columns.push(r.hostname);
-        }
-        return columns;
+    rowClickHandler(_event, row) {
+        cockpit.location.go([row.id], cockpit.location.options);
     }
 
     render() {
-        let columnTitles = this.getColumnTitles();
-        let list = this.getSortedList();
-        let rows = [];
+        const { sortBy } = this.state;
+        const { index, direction } = sortBy;
 
-        for (let i = 0; i < list.length; i++) {
-            let r = list[i];
-            let columns = this.getColumns(r);
-            rows.push(<Listing.ListingRow
-                        key={r.id}
-                        rowId={r.id}
-                        columns={columns}
-                        navigateToItem={this.navigateToRecording.bind(this, r)} />);
-        }
+        // generate columns
+        let titles = ["User", "Start", "End", "Duration"];
+        if (this.props.diff_hosts === true)
+            titles.push("Hostname");
+        const columnTitles = titles.map(title => ({
+            title: _(title),
+            transforms: [sortable]
+        }));
+
+        // sort rows
+        let rows = this.props.list.map(rec => {
+            let cells = [
+                rec.user,
+                formatDateTime(rec.start),
+                formatDateTime(rec.end),
+                formatDuration(rec.end - rec.start),
+            ];
+            if (this.props.diff_hosts === true)
+                cells.push(rec.hostname);
+            return {
+                id: rec.id,
+                cells: cells
+            };
+        }).sort((a, b) => a.cells[index].localeCompare(b.cells[index]));
+        rows = direction === SortByDirection.asc ? rows : rows.reverse();
+
         return (
-            <Listing.Listing title={_("Sessions")}
-                             columnTitles={columnTitles}
-                             emptyCaption={_("No recorded sessions")}
-                             fullWidth={false}>
-                {rows}
-            </Listing.Listing>
+            <>
+                <Table
+                    aria-label={_("Recordings")}
+                    cells={columnTitles}
+                    rows={rows}
+                    sortBy={sortBy}
+                    onSort={this.onSort}>
+                    <TableHeader />
+                    <TableBody onRowClick={this.rowClickHandler} />
+                </Table>
+                {!rows.length &&
+                    <EmptyState variant={EmptyStateVariant.small}>
+                        <EmptyStateIcon icon={SearchIcon} />
+                        <Title headingLevel="h2" size="lg">
+                            {_("No recordings found")}
+                        </Title>
+                        <EmptyStateBody>
+                            {_("No recordings matched the filter criteria.")}
+                        </EmptyStateBody>
+                    </EmptyState>}
+            </>
         );
     }
 }
@@ -621,13 +539,12 @@ class RecordingList extends React.Component {
  * single recording. Extracts the ID of the recording to display from
  * cockpit.location.path[0]. If it's zero, displays the list.
  */
-class View extends React.Component {
+export default class View extends React.Component {
     constructor(props) {
         super(props);
         this.onLocationChanged = this.onLocationChanged.bind(this);
         this.journalctlIngest = this.journalctlIngest.bind(this);
         this.handleInputChange = this.handleInputChange.bind(this);
-        this.handleDateSinceChange = this.handleDateSinceChange.bind(this);
         this.openConfig = this.openConfig.bind(this);
         /* Journalctl instance */
         this.journalctl = null;
@@ -637,11 +554,12 @@ class View extends React.Component {
         this.recordingMap = {};
         /* tlog UID in system set in ComponentDidMount */
         this.uid = null;
+        const path = cockpit.location.path[0];
         this.state = {
             /* List of recordings in start order */
             recordingList: [],
             /* ID of the recording to display, or null for all */
-            recordingID: cockpit.location.path[0] || null,
+            recordingID: path === "config" ? null : path || null,
             /* filter values start */
             date_since: cockpit.location.options.date_since || "",
             date_until: cockpit.location.options.date_until || "",
@@ -651,6 +569,8 @@ class View extends React.Component {
             /* filter values end */
             error_tlog_uid: false,
             diff_hosts: false,
+            /* if config is open */
+            config: path === "config",
         };
     }
 
@@ -666,63 +586,70 @@ class View extends React.Component {
      * displayed recording ID.
      */
     onLocationChanged() {
-        this.setState({
-            recordingID: cockpit.location.path[0] || null,
-            date_since: cockpit.location.options.date_since || "",
-            date_until: cockpit.location.options.date_until || "",
-            username: cockpit.location.options.username || "",
-            hostname: cockpit.location.options.hostname || "",
-            search: cockpit.location.options.search || "",
-        });
+        const path = cockpit.location.path[0];
+        if (path === "config")
+            this.setState({ config: true });
+        else
+            this.setState({
+                recordingID: cockpit.location.path[0] || null,
+                date_since: cockpit.location.options.date_since || "",
+                date_until: cockpit.location.options.date_until || "",
+                username: cockpit.location.options.username || "",
+                hostname: cockpit.location.options.hostname || "",
+                search: cockpit.location.options.search || "",
+                config: false
+            });
     }
 
     /*
      * Ingest journal entries sent by journalctl.
      */
     journalctlIngest(entryList) {
-        let recordingList = this.state.recordingList.slice();
+        const recordingList = this.state.recordingList.slice();
         let i;
         let j;
         let hostname;
 
         if (entryList[0]) {
-            if (entryList[0]["_HOSTNAME"]) {
-                hostname = entryList[0]["_HOSTNAME"];
+            if (entryList[0]._HOSTNAME) {
+                hostname = entryList[0]._HOSTNAME;
             }
         }
 
         for (i = 0; i < entryList.length; i++) {
-            let e = entryList[i];
-            let id = e['TLOG_REC'];
+            const e = entryList[i];
+            const id = e.TLOG_REC;
 
             /* Skip entries with missing recording ID */
             if (id === undefined) {
                 continue;
             }
 
-            let ts = Math.floor(
-                parseInt(e["__REALTIME_TIMESTAMP"], 10) /
+            const ts = Math.floor(
+                parseInt(e.__REALTIME_TIMESTAMP, 10) /
                             1000);
 
             let r = this.recordingMap[id];
             /* If no recording found */
             if (r === undefined) {
                 /* Create new recording */
-                if (hostname !== e["_HOSTNAME"]) {
-                    this.setState({diff_hosts: true});
+                if (hostname !== e._HOSTNAME) {
+                    this.setState({ diff_hosts: true });
                 }
 
-                r = {id:            id,
-                     matchList:     ["TLOG_REC=" + id],
-                     user:          e["TLOG_USER"],
-                     boot_id:       e["_BOOT_ID"],
-                     session_id:    parseInt(e["TLOG_SESSION"], 10),
-                     pid:           parseInt(e["_PID"], 10),
-                     start:         ts,
-                     /* FIXME Should be start + message duration */
-                     end:       ts,
-                     hostname:  e["_HOSTNAME"],
-                     duration:  0};
+                r = {
+                    id:            id,
+                    matchList:     ["TLOG_REC=" + id],
+                    user:          e.TLOG_USER,
+                    boot_id:       e._BOOT_ID,
+                    session_id:    parseInt(e.TLOG_SESSION, 10),
+                    pid:           parseInt(e._PID, 10),
+                    start:         ts,
+                    /* FIXME Should be start + message duration */
+                    end:       ts,
+                    hostname:  e._HOSTNAME,
+                    duration:  0
+                };
                 /* Map the recording */
                 this.recordingMap[id] = r;
                 /* Insert the recording in order */
@@ -757,7 +684,7 @@ class View extends React.Component {
             }
         }
 
-        this.setState({recordingList: recordingList});
+        this.setState({ recordingList: recordingList });
     }
 
     /*
@@ -765,7 +692,7 @@ class View extends React.Component {
      * Assumes journalctl is not running.
      */
     journalctlStart() {
-        let matches = ["_COMM=tlog-rec",
+        const matches = ["_COMM=tlog-rec",
             /* Strings longer than TASK_COMM_LEN (16) characters
              * are truncated (man proc) */
             "_COMM=tlog-rec-sessio"];
@@ -777,22 +704,22 @@ class View extends React.Component {
             matches.push("_HOSTNAME=" + this.state.hostname);
         }
 
-        let options = {follow: false, count: "all", merge: true};
+        const options = { follow: false, count: "all", merge: true };
 
         if (this.state.date_since && this.state.date_since !== "") {
-            options['since'] = formatUTC(this.state.date_since);
+            options.since = formatUTC(this.state.date_since);
         }
 
         if (this.state.date_until && this.state.date_until !== "") {
-            options['until'] = formatUTC(this.state.date_until);
+            options.until = formatUTC(this.state.date_until);
         }
 
         if (this.state.search && this.state.search !== "" && this.state.recordingID === null) {
-            options["grep"] = this.state.search;
+            options.grep = this.state.search;
         }
 
         if (this.state.recordingID !== null) {
-            delete options["grep"];
+            delete options.grep;
             matches.push("TLOG_REC=" + this.state.recordingID);
         }
 
@@ -835,32 +762,22 @@ class View extends React.Component {
      */
     clearRecordings() {
         this.recordingMap = {};
-        this.setState({recordingList: []});
+        this.setState({ recordingList: [] });
     }
 
-    handleInputChange(event) {
-        const name = event.target.name;
-        const value = event.target.value;
-        let state = {};
+    handleInputChange(name, value) {
+        const state = {};
         state[name] = value;
         this.setState(state);
         cockpit.location.go([], $.extend(cockpit.location.options, state));
     }
 
-    handleDateSinceChange(date) {
-        cockpit.location.go([], $.extend(cockpit.location.options, {date_since: date}));
-    }
-
-    handleDateUntilChange(date) {
-        cockpit.location.go([], $.extend(cockpit.location.options, {date_until: date}));
-    }
-
     openConfig() {
-        cockpit.jump(['session-recording/config']);
+        cockpit.location.go("/config");
     }
 
     componentDidMount() {
-        let proc = cockpit.spawn(["getent", "passwd", "tlog"]);
+        const proc = cockpit.spawn(["getent", "passwd", "tlog"]);
 
         proc.stream((data) => {
             this.uid = data.split(":", 3)[2];
@@ -869,7 +786,7 @@ class View extends React.Component {
         });
 
         proc.fail(() => {
-            this.setState({error_tlog_uid: true});
+            this.setState({ error_tlog_uid: true });
         });
 
         cockpit.addEventListener("locationchanged",
@@ -882,7 +799,7 @@ class View extends React.Component {
         }
     }
 
-    componentDidUpdate(prevProps, prevState) {
+    componentDidUpdate(_prevProps, prevState) {
         /*
          * If we're running a specific (non-wildcard) journalctl
          * and recording ID has changed
@@ -906,75 +823,94 @@ class View extends React.Component {
     }
 
     render() {
-        if (this.state.error_tlog_uid === true) {
+        if (this.state.config === true) {
+            return <Config.Config />;
+        } else if (this.state.error_tlog_uid === true) {
             return (
-                <div className="container-fluid">
-                    Error getting tlog UID from system.
-                </div>
+                <Bullseye>
+                    <EmptyState variant={EmptyStateVariant.small}>
+                        <EmptyStateIcon
+                            icon={ExclamationCircleIcon}
+                            color={global_danger_color_200.value} />
+                        <Title headingLevel="h2" size="lg">
+                            {_("Error")}
+                        </Title>
+                        <EmptyStateBody>
+                            {_("Unable to retrieve tlog UID from system.")}
+                        </EmptyStateBody>
+                    </EmptyState>
+                </Bullseye>
             );
-        }
-        if (this.state.recordingID === null) {
+        } else if (this.state.recordingID === null) {
+            const toolbar = (
+                <ToolbarContent>
+                    <ToolbarGroup>
+                        <ToolbarItem variant="label">{_("Since")}</ToolbarItem>
+                        <ToolbarItem>
+                            <TextInput
+                                id="filter-since"
+                                placeholder={_("Filter since")}
+                                value={this.state.date_since}
+                                type="search"
+                                onChange={value => this.handleInputChange("date_since", value)} />
+                        </ToolbarItem>
+                    </ToolbarGroup>
+                    <ToolbarGroup>
+                        <ToolbarItem variant="label">{_("Until")}</ToolbarItem>
+                        <ToolbarItem>
+                            <TextInput
+                                id="filter-until"
+                                placeholder={_("Filter until")}
+                                value={this.state.date_until}
+                                type="search"
+                                onChange={value => this.handleInputChange("date_until", value)} />
+                        </ToolbarItem>
+                    </ToolbarGroup>
+                    <ToolbarGroup>
+                        <ToolbarItem variant="label">{_("Search")}</ToolbarItem>
+                        <ToolbarItem>
+                            <TextInput
+                                id="filter-search"
+                                placeholder={_("Filter by content")}
+                                value={this.state.search}
+                                type="search"
+                                onChange={value => this.handleInputChange("search", value)} />
+                        </ToolbarItem>
+                    </ToolbarGroup>
+                    <ToolbarGroup>
+                        <ToolbarItem variant="label">{_("Username")}</ToolbarItem>
+                        <ToolbarItem>
+                            <TextInput
+                                id="filter-username"
+                                placeholder={_("Filter by username")}
+                                value={this.state.username}
+                                type="search"
+                                onChange={value => this.handleInputChange("username", value)} />
+                        </ToolbarItem>
+                    </ToolbarGroup>
+                    {this.state.diff_hosts === true &&
+                    <ToolbarGroup>
+                        <ToolbarItem variant="label">{_("Hostname")}</ToolbarItem>
+                        <ToolbarItem>
+                            <TextInput
+                                id="filter-hostname"
+                                placeholder={_("Filter by hostname")}
+                                value={this.state.hostname}
+                                type="search"
+                                onChange={value => this.handleInputChange("hostname", value)} />
+                        </ToolbarItem>
+                    </ToolbarGroup>}
+                    <ToolbarItem>
+                        <Button id="btn-config" onClick={this.openConfig}>
+                            <CogIcon />
+                        </Button>
+                    </ToolbarItem>
+                </ToolbarContent>
+            );
+
             return (
-                <React.Fragment>
-                    <div className="content-header-extra">
-                        <table className="form-table-ct">
-                            <thead>
-                                <tr>
-                                    <td className="top">
-                                        <label className="control-label" htmlFor="date_since">{_("Since")}</label>
-                                    </td>
-                                    <td id="since-search">
-                                        <Datetimepicker value={this.state.date_since} onChange={this.handleDateSinceChange} />
-                                    </td>
-                                    <td className="top">
-                                        <label className="control-label" htmlFor="date_until">{_("Until")}</label>
-                                    </td>
-                                    <td id="until-search">
-                                        <Datetimepicker value={this.state.date_until} onChange={this.handleDateUntilChange} />
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td className="top">
-                                        <label className="control-label" htmlFor="search">Search</label>
-                                    </td>
-                                    <td>
-                                        <div className="input-group">
-                                            <input type="text" id="recording-search" className="form-control" name="search" value={this.state.search}
-                                                   onChange={this.handleInputChange} />
-                                        </div>
-                                    </td>
-                                    <td className="top">
-                                        <label className="control-label" htmlFor="username">Username</label>
-                                    </td>
-                                    <td>
-                                        <div className="input-group">
-                                            <input type="text" id="username-search" className="form-control" name="username" value={this.state.username}
-                                                   onChange={this.handleInputChange} />
-                                        </div>
-                                    </td>
-                                    {this.state.diff_hosts === true &&
-                                    <td className="top">
-                                        <label className="control-label" htmlFor="hostname">{_("Hostname")}</label>
-                                    </td>
-                                    }
-                                    {this.state.diff_hosts === true &&
-                                    <td>
-                                        <div className="input-group">
-                                            <input type="text" className="form-control" name="hostname" value={this.state.hostname}
-                                                   onChange={this.handleInputChange} />
-                                        </div>
-                                    </td>
-                                    }
-                                    <td className="top">
-                                        <label className="control-label" htmlFor="config">{_("Configuration")}</label>
-                                    </td>
-                                    <td className="top">
-                                        <button id="btn-config" className="btn btn-default" onClick={this.openConfig}><i className="fa fa-cog" aria-hidden="true" /></button>
-                                    </td>
-                                </tr>
-                            </thead>
-                        </table>
-                    </div>
+                <>
+                    <Toolbar>{toolbar}</Toolbar>
                     <RecordingList
                         date_since={this.state.date_since}
                         date_until={this.state.date_until}
@@ -982,16 +918,14 @@ class View extends React.Component {
                         hostname={this.state.hostname}
                         list={this.state.recordingList}
                         diff_hosts={this.state.diff_hosts} />
-                </React.Fragment>
+                </>
             );
         } else {
             return (
-                <React.Fragment>
-                    <Recording recording={this.recordingMap[this.state.recordingID]} search={this.state.search} />
-                </React.Fragment>
+                <Recording
+                    recording={this.recordingMap[this.state.recordingID]}
+                    search={this.state.search} />
             );
         }
     }
 }
-
-ReactDOM.render(<View />, document.getElementById('view'));

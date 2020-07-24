@@ -18,16 +18,38 @@
  */
 "use strict";
 
-let cockpit = require("cockpit");
-let React = require("react");
-let ReactDOM = require("react-dom");
-let json = require('comment-json');
-let ini = require('ini');
+import React from "react";
+import {
+    Button,
+    Form,
+    FormGroup,
+    FormSelect,
+    FormSelectOption,
+    TextInput,
+    ActionGroup,
+    Spinner,
+    Card,
+    CardTitle,
+    CardBody,
+    Checkbox,
+    Bullseye,
+    EmptyState,
+    EmptyStateIcon,
+    Title,
+    EmptyStateBody,
+    EmptyStateVariant
+} from "@patternfly/react-core";
+import { AngleLeftIcon, ExclamationCircleIcon } from "@patternfly/react-icons";
+import { global_danger_color_200 } from "@patternfly/react-tokens";
 
-class Config extends React.Component {
+const json = require('comment-json');
+const ini = require('ini');
+const cockpit = require('cockpit');
+const _ = cockpit.gettext;
+
+class GeneralConfig extends React.Component {
     constructor(props) {
         super(props);
-        this.handleInputChange = this.handleInputChange.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
         this.setConfig = this.setConfig.bind(this);
         this.fileReadFailed = this.fileReadFailed.bind(this);
@@ -37,7 +59,7 @@ class Config extends React.Component {
         this.state = {
             config_loaded: false,
             file_error: false,
-            submitting: "none",
+            submitting: false,
             shell: "",
             notice: "",
             latency: "",
@@ -57,17 +79,9 @@ class Config extends React.Component {
         };
     }
 
-    handleInputChange(e) {
-        const value = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
-        const name = e.target.name;
-        const state = {};
-        state[name] = value;
-        this.setState(state);
-    }
-
     handleSubmit(event) {
-        this.setState({submitting:"block"});
-        let config = {
+        this.setState({ submitting: true });
+        const config = {
             shell:  this.state.shell,
             notice:  this.state.notice,
             latency:  parseInt(this.state.latency),
@@ -96,7 +110,7 @@ class Config extends React.Component {
             writer:  this.state.writer
         };
         this.file.replace(config).done(() => {
-            this.setState({submitting:"none"});
+            this.setState({ submitting: false });
         })
                 .fail((error) => {
                     console.log(error);
@@ -111,12 +125,12 @@ class Config extends React.Component {
             var toReturn = {};
 
             for (var i in ob) {
-                if (!ob.hasOwnProperty(i)) continue;
+                if (!Object.prototype.hasOwnProperty.call(ob, i)) continue;
 
                 if ((typeof ob[i]) == 'object') {
                     var flatObject = flattenObject(ob[i]);
                     for (var x in flatObject) {
-                        if (!flatObject.hasOwnProperty(x)) continue;
+                        if (!Object.prototype.hasOwnProperty.call(flatObject, x)) continue;
 
                         toReturn[i + '_' + x] = flatObject[x];
                     }
@@ -126,13 +140,13 @@ class Config extends React.Component {
             }
             return toReturn;
         };
-        let state = flattenObject(data);
+        const state = flattenObject(data);
         state.config_loaded = true;
         this.setState(state);
     }
 
     getConfig() {
-        let proc = cockpit.spawn(["tlog-rec-session", "--configuration"]);
+        const proc = cockpit.spawn(["tlog-rec-session", "--configuration"]);
 
         proc.stream((data) => {
             this.setConfig(json.parse(data, null, true));
@@ -146,15 +160,15 @@ class Config extends React.Component {
     }
 
     readConfig() {
-        let parseFunc = function(data) {
+        const parseFunc = function(data) {
             return json.parse(data, null, true);
         };
 
-        let stringifyFunc = function(data) {
+        const stringifyFunc = function(data) {
             return json.stringify(data, null, true);
         };
         // needed for cockpit.file usage
-        let syntax_object = {
+        const syntax_object = {
             parse: parseFunc,
             stringify: stringifyFunc,
         };
@@ -163,22 +177,11 @@ class Config extends React.Component {
             syntax: syntax_object,
             superuser: true,
         });
-        /*
-        let promise = this.file.read();
-
-        promise.done((data) => {
-            if (data === null) {
-                this.fileReadFailed();
-            }
-        }).fail((data) => {
-            this.fileReadFailed(data);
-        });
-        */
     }
 
     fileReadFailed(reason) {
         console.log(reason);
-        this.setState({file_error: reason});
+        this.setState({ file_error: reason });
     }
 
     componentDidMount() {
@@ -187,160 +190,201 @@ class Config extends React.Component {
     }
 
     render() {
-        if (this.state.config_loaded === false && this.state.file_error === false) {
-            return (
-                <div>Loading</div>
-            );
-        } else if (this.state.config_loaded === true && this.state.file_error === false) {
-            return (
-                <form onSubmit={this.handleSubmit}>
-                    <table className="form-table-ct col-sm-3">
-                        <tbody>
-                            <tr>
-                                <td className="top"><label htmlFor="shell" className="control-label">Shell</label></td>
-                                <td>
-                                    <input type="text" id="shell" name="shell" value={this.state.shell}
-                                       className="form-control" onChange={this.handleInputChange} />
-                                </td>
-                            </tr>
-                            <tr>
-                                <td className="top"><label htmlFor="notice" className="control-label">Notice</label></td>
-                                <td>
-                                    <input type="text" id="notice" name="notice" value={this.state.notice}
-                                       className="form-control" onChange={this.handleInputChange} />
-                                </td>
-                            </tr>
-                            <tr>
-                                <td className="top"><label htmlFor="latency" className="control-label">Latency</label></td>
-                                <td>
-                                    <input type="number" step="1" id="latency" name="latency" value={this.state.latency}
-                                       className="form-control" onChange={this.handleInputChange} />
-                                </td>
-                            </tr>
-                            <tr>
-                                <td className="top"><label htmlFor="latency" className="control-label">Payload Size, bytes</label></td>
-                                <td>
-                                    <input type="number" step="1" id="payload" name="payload" value={this.state.payload}
-                                       className="form-control" onChange={this.handleInputChange} />
-                                </td>
-                            </tr>
-                            <tr>
-                                <td className="top"><label htmlFor="log_input" className="control-label">Log User's Input</label></td>
-                                <td>
-                                    <input type="checkbox" id="log_input" name="log_input" defaultChecked={this.state.log_input} onChange={this.handleInputChange} />
-                                </td>
-                            </tr>
-                            <tr>
-                                <td className="top"><label htmlFor="log_output" className="control-label">Log User's Output</label></td>
-                                <td>
-                                    <input type="checkbox" id="log_output" name="log_output" defaultChecked={this.state.log_output} onChange={this.handleInputChange} />
-                                </td>
-                            </tr>
-                            <tr>
-                                <td className="top"><label htmlFor="log_window" className="control-label">Log Window Resize</label></td>
-                                <td>
-                                    <input type="checkbox" id="log_window" name="log_window" defaultChecked={this.state.log_window} onChange={this.handleInputChange} />
-                                </td>
-                            </tr>
+        const form =
+            (this.state.config_loaded === false && this.state.file_error === false)
+                ? <Spinner />
+                : (this.state.config_loaded === true && this.state.file_error === false)
+                    ? (
+                        <Form isHorizontal>
+                            <FormGroup label={_("Shell")}>
+                                <TextInput
+                                    id="shell"
+                                    value={this.state.shell}
+                                    onChange={shell => this.setState({ shell })} />
+                            </FormGroup>
+                            <FormGroup label={_("Notice")}>
+                                <TextInput
+                                    id="notice"
+                                    value={this.state.notice}
+                                    onChange={notice => this.setState({ notice })} />
+                            </FormGroup>
+                            <FormGroup label={_("Latency")}>
+                                <TextInput
+                                    id="latency"
+                                    type="number"
+                                    step="1"
+                                    value={this.state.latency}
+                                    onChange={latency => this.setState({ latency })} />
+                            </FormGroup>
+                            <FormGroup label={_("Payload Size, bytes")}>
+                                <TextInput
+                                    id="payload"
+                                    type="number"
+                                    step="1"
+                                    value={this.state.payload}
+                                    onChange={payload => this.setState({ payload })} />
+                            </FormGroup>
+                            <FormGroup label={_("Logging")}>
+                                <Checkbox
+                                    id="log_input"
+                                    isChecked={this.state.log_input}
+                                    onChange={log_input => this.setState({ log_input })}
+                                    label={_("User's Input")} />
+                                <Checkbox
+                                    id="log_output"
+                                    isChecked={this.state.log_output}
+                                    onChange={log_output => this.setState({ log_output })}
+                                    label={_("User's Output")} />
+                                <Checkbox
+                                    id="log_window"
+                                    isChecked={this.state.log_window}
+                                    onChange={log_window => this.setState({ log_window })}
+                                    label={_("Window Resize")} />
+                            </FormGroup>
+                            <FormGroup label={_("Limit Rate, bytes/sec")}>
+                                <TextInput
+                                    id="limit_rate"
+                                    type="number"
+                                    step="1"
+                                    value={this.state.limit_rate}
+                                    onChange={limit_rate => this.setState({ limit_rate })} />
+                            </FormGroup>
+                            <FormGroup label={_("Burst, bytes")}>
+                                <TextInput
+                                    id="limit_burst"
+                                    type="number"
+                                    step="1"
+                                    value={this.state.limit_burst}
+                                    onChange={limit_burst => this.setState({ limit_burst })} />
+                            </FormGroup>
+                            <FormGroup label={_("Logging Limit Action")}>
+                                <FormSelect
+                                    id="limit_action"
+                                    value={this.state.limit_action}
+                                    onChange={limit_action => this.setState({ limit_action })}>
+                                    {[
+                                        { value: "", label: "" },
+                                        { value: "pass", label: _("Pass") },
+                                        { value: "delay", label: _("Delay") },
+                                        { value: "drop", label: _("Drop") }
+                                    ].map((option, index) =>
+                                        <FormSelectOption
+                                        key={index}
+                                        value={option.value}
+                                        label={option.label} />
+                                    )}
+                                </FormSelect>
+                            </FormGroup>
+                            <FormGroup label={_("File Path")}>
+                                <TextInput
+                                    id="file_path"
+                                    value={this.state.file_path}
+                                    onChange={file_path => this.setState({ file_path })} />
+                            </FormGroup>
+                            <FormGroup label={_("Syslog Facility")}>
+                                <TextInput
+                                    id="syslog_facility"
+                                    value={this.state.syslog_facility}
+                                    onChange={syslog_facility =>
+                                        this.setState({ syslog_facility })} />
+                            </FormGroup>
+                            <FormGroup label={_("Syslog Priority")}>
+                                <FormSelect
+                                    id="syslog_priority"
+                                    value={this.state.syslog_priority}
+                                    onChange={syslog_priority =>
+                                        this.setState({ syslog_priority })}>
+                                    {[
+                                        { value: "", label: "" },
+                                        { value: "info", label: _("Info") },
+                                    ].map((option, index) =>
+                                        <FormSelectOption
+                                        key={index}
+                                        value={option.value}
+                                        label={option.label} />
+                                    )}
+                                </FormSelect>
+                            </FormGroup>
+                            <FormGroup label={_("Journal Priority")}>
+                                <FormSelect
+                                    id="journal_priority"
+                                    value={this.state.journal_priority}
+                                    onChange={journal_priority =>
+                                        this.setState({ journal_priority })}>
+                                    {[
+                                        { value: "", label: "" },
+                                        { value: "info", label: _("Info") },
+                                    ].map((option, index) =>
+                                        <FormSelectOption
+                                        key={index}
+                                        value={option.value}
+                                        label={option.label} />
+                                    )}
+                                </FormSelect>
+                            </FormGroup>
+                            <FormGroup>
+                                <Checkbox
+                                    id="journal_augment"
+                                    isChecked={this.state.journal_augment}
+                                    onChange={journal_augment =>
+                                        this.setState({ journal_augment })}
+                                    label={_("Augment")} />
+                            </FormGroup>
+                            <FormGroup label={_("Writer")}>
+                                <FormSelect
+                                    id="writer"
+                                    value={this.state.writer}
+                                    onChange={writer =>
+                                        this.setState({ writer })}>
+                                    {[
+                                        { value: "", label: "" },
+                                        { value: "journal", label: _("Journal") },
+                                        { value: "syslog", label: _("Syslog") },
+                                        { value: "file", label: _("File") },
+                                    ].map((option, index) =>
+                                        <FormSelectOption
+                                        key={index}
+                                        value={option.value}
+                                        label={option.label} />
+                                    )}
+                                </FormSelect>
+                            </FormGroup>
+                            <ActionGroup>
+                                <Button
+                                    id="btn-save-tlog-conf"
+                                    variant="primary"
+                                    onClick={this.handleSubmit}>
+                                    {_("Save")}
+                                </Button>
+                                {this.state.submitting === true && <Spinner size="lg" />}
+                            </ActionGroup>
+                        </Form>
+                    )
+                    : (
+                        <Bullseye>
+                            <EmptyState variant={EmptyStateVariant.small}>
+                                <EmptyStateIcon
+                                icon={ExclamationCircleIcon}
+                                color={global_danger_color_200.value} />
+                                <Title headingLevel="h4" size="lg">
+                                    {_("There is no configuration file of tlog present in your system.")}
+                                </Title>
+                                <Title headingLevel="h4" size="lg">
+                                    {_("Please, check the /etc/tlog/tlog-rec-session.conf or if tlog is installed.")}
+                                </Title>
+                                <EmptyStateBody>
+                                    {this.state.file_error}
+                                </EmptyStateBody>
+                            </EmptyState>
+                        </Bullseye>
+                    );
 
-                            <tr>
-                                <td className="top"><label htmlFor="limit_rate" className="control-label">Limit Rate, bytes/sec</label></td>
-                                <td>
-                                    <input type="number" step="1" id="limit_rate" name="limit_rate" value={this.state.limit_rate}
-                                       className="form-control" onChange={this.handleInputChange} />
-                                </td>
-                            </tr>
-                            <tr>
-                                <td className="top"><label htmlFor="limit_burst" className="control-label">Burst, bytes</label></td>
-                                <td>
-                                    <input type="number" step="1" id="limit_burst" name="limit_burst" value={this.state.limit_burst}
-                                       className="form-control" onChange={this.handleInputChange} />
-                                </td>
-                            </tr>
-                            <tr>
-                                <td className="top"><label htmlFor="limit_action" className="control-label">Logging Limit Action</label></td>
-                                <td>
-                                    <select name="limit_action" id="limit_action" onChange={this.handleInputChange} value={this.state.limit_action} className="form-control">
-                                        <option value="" />
-                                        <option value="pass">Pass</option>
-                                        <option value="delay">Delay</option>
-                                        <option value="drop">Drop</option>
-                                    </select>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td className="top"><label htmlFor="file_path" className="control-label">File Path</label></td>
-                                <td>
-                                    <input type="text" id="file_path" name="file_path" defaultChecked={this.state.file_path}
-                                       className="form-control" onChange={this.handleInputChange} />
-                                </td>
-                            </tr>
-                            <tr>
-                                <td className="top"><label htmlFor="syslog_facility" className="control-label">Syslog Facility</label></td>
-                                <td>
-                                    <input type="text" id="syslog_facility" name="syslog_facility" value={this.state.syslog_facility}
-                                       className="form-control" onChange={this.handleInputChange} />
-                                </td>
-                            </tr>
-                            <tr>
-                                <td className="top"><label htmlFor="syslog_priority" className="control-label">Syslog Priority</label></td>
-                                <td>
-                                    <select name="syslog_priority" id="syslog_priority" onChange={this.handleInputChange} value={this.state.syslog_priority} className="form-control">
-                                        <option value="" />
-                                        <option value="info">Info</option>
-                                    </select>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td className="top"><label htmlFor="journal_priority" className="control-label">Journal Priority</label></td>
-                                <td>
-                                    <select name="journal_priority" id="journal_priority" onChange={this.handleInputChange} value={this.state.journal_priority} className="form-control">
-                                        <option value="" />
-                                        <option value="info">Info</option>
-                                    </select>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td className="top"><label htmlFor="journal_augment" className="control-label">Journal Augment</label></td>
-                                <td>
-                                    <input type="checkbox" id="journal_augment" name="journal_augment" defaultChecked={this.state.journal_augment} onChange={this.handleInputChange} />
-                                </td>
-
-                            </tr>
-                            <tr>
-                                <td className="top"><label htmlFor="writer" className="control-label">Writer</label></td>
-                                <td>
-                                    <select name="writer" id="writer" onChange={this.handleInputChange} value={this.state.writer} className="form-control">
-                                        <option value="" />
-                                        <option value="journal">Journal</option>
-                                        <option value="syslog">Syslog</option>
-                                        <option value="file">File</option>
-                                    </select>
-
-                                </td>
-                            </tr>
-                            <tr>
-                                <td className="top">
-                                    <button id="btn-save-tlog-conf" className="btn btn-default" type="submit">Save</button>
-                                </td>
-                                <td>
-                                    <span style={{display: this.state.submitting}}>Saving...</span>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </form>
-            );
-        } else {
-            return (
-                <div className="alert alert-danger">
-                    <span className="pficon pficon-error-circle-o" />
-                    <p><strong>There is no configuration file of tlog present in your system.</strong></p>
-                    <p>Please, check the /etc/tlog/tlog-rec-session.conf or if tlog is installed.</p>
-                    <p><strong>{this.state.file_error}</strong></p>
-                </div>
-            );
-        }
+        return (
+            <Card>
+                <CardTitle>General Config</CardTitle>
+                <CardBody style={{ maxWidth: "500px" }}>{form}</CardBody>
+            </Card>
+        );
     }
 }
 
@@ -348,7 +392,6 @@ class SssdConfig extends React.Component {
     constructor(props) {
         super(props);
         this.handleSubmit = this.handleSubmit.bind(this);
-        this.handleInputChange = this.handleInputChange.bind(this);
         this.setConfig = this.setConfig.bind(this);
         this.confSave = this.confSave.bind(this);
         this.file = null;
@@ -356,29 +399,25 @@ class SssdConfig extends React.Component {
             scope: "",
             users: "",
             groups: "",
-            submitting: "none",
+            submitting: false,
         };
     }
 
     confSave(obj) {
-        this.setState({submitting:"block"});
+        this.setState({ submitting: true });
         this.file.replace(obj).done(() => {
-            cockpit.spawn(["chmod", "600", "/etc/sssd/conf.d/sssd-session-recording.conf"], { "superuser": "require" }).done(() => {
-                cockpit.spawn(["systemctl", "restart", "sssd"], { "superuser": "require" }).done(() => {
-                    this.setState({submitting:"none"});
+            cockpit.spawn(
+                ["chmod", "600", "/etc/sssd/conf.d/sssd-session-recording.conf"],
+                { superuser: "require" }).done(() => {
+                cockpit.spawn(
+                    ["systemctl", "restart", "sssd"],
+                    { superuser: "require" }).done(() => {
+                    this.setState({ submitting: false });
                 })
                         .fail((data) => console.log(data));
             })
                     .fail((data) => console.log(data));
         });
-    }
-
-    handleInputChange(e) {
-        const value = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
-        const name = e.target.name;
-        const state = {};
-        state[name] = value;
-        this.setState(state);
     }
 
     setConfig(data) {
@@ -388,13 +427,13 @@ class SssdConfig extends React.Component {
             obj.session_recording.scope = "none";
             this.confSave(obj);
         } else {
-            const config = {...data['session_recording']};
+            const config = { ...data.session_recording };
             this.setState(config);
         }
     }
 
     componentDidMount() {
-        let syntax_object = {
+        const syntax_object = {
             parse:     ini.parse,
             stringify: ini.stringify
         };
@@ -404,7 +443,7 @@ class SssdConfig extends React.Component {
             superuser: true,
         });
 
-        let promise = this.file.read();
+        const promise = this.file.read();
 
         promise.done(() => this.file.watch(this.setConfig));
 
@@ -424,95 +463,75 @@ class SssdConfig extends React.Component {
     }
 
     render() {
+        const form = (
+            <Form isHorizontal>
+                <FormGroup label="Scope">
+                    <FormSelect
+                        id="scope"
+                        value={this.state.scope}
+                        onChange={scope => this.setState({ scope })}>
+                        {[
+                            { value: "none", label: _("None") },
+                            { value: "some", label: _("Some") },
+                            { value: "all", label: _("All") }
+                        ].map((option, index) =>
+                            <FormSelectOption
+                                key={index}
+                                value={option.value}
+                                label={option.label} />
+                        )}
+                    </FormSelect>
+                </FormGroup>
+                {this.state.scope === "some" &&
+                <>
+                    <FormGroup label={_("Users")}>
+                        <TextInput
+                            id="users"
+                            value={this.state.users}
+                            onChange={users => this.setState({ users })}
+                        />
+                    </FormGroup>
+                    <FormGroup label={_("Groups")}>
+                        <TextInput
+                            id="groups"
+                            value={this.state.groups}
+                            onChange={groups => this.setState({ groups })}
+                        />
+                    </FormGroup>
+                </>}
+                <ActionGroup>
+                    <Button
+                        id="btn-save-sssd-conf"
+                        variant="primary"
+                        onClick={this.handleSubmit}>
+                        {_("Save")}
+                    </Button>
+                    {this.state.submitting === true && <Spinner size="lg" />}
+                </ActionGroup>
+            </Form>
+        );
+
         return (
-            <form onSubmit={this.handleSubmit}>
-                <table className="info-table-ct col-md-12">
-                    <tbody>
-                        <tr>
-                            <td><label htmlFor="scope">Scope</label></td>
-                            <td>
-                                <select name="scope" id="scope" className="form-control"
-                                    value={this.state.scope}
-                                    onChange={this.handleInputChange} >
-                                    <option value="none">None</option>
-                                    <option value="some">Some</option>
-                                    <option value="all">All</option>
-                                </select>
-                            </td>
-                        </tr>
-                        {this.state.scope === "some" &&
-                        <tr>
-                            <td><label htmlFor="users">Users</label></td>
-                            <td>
-                                <input type="text" id="users" name="users"
-                                   value={this.state.users}
-                                   className="form-control" onChange={this.handleInputChange} />
-                            </td>
-                        </tr>
-                        }
-                        {this.state.scope === "some" &&
-                        <tr>
-                            <td><label htmlFor="groups">Groups</label></td>
-                            <td>
-                                <input type="text" id="groups" name="groups"
-                                       value={this.state.groups}
-                                       className="form-control" onChange={this.handleInputChange} />
-                            </td>
-                        </tr>
-                        }
-                        <tr>
-                            <td><button id="btn-save-sssd-conf" className="btn btn-default" type="submit">Save</button></td>
-                            <td>
-                                <span style={{display: this.state.submitting}}>Saving...</span>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </form>
+            <Card>
+                <CardTitle>SSSD Config</CardTitle>
+                <CardBody style={{ maxWidth: "500px" }}>{form}</CardBody>
+            </Card>
         );
     }
 }
 
-class ConfigView extends React.Component {
-    render() {
-        const goBack = () => {
-            cockpit.jump(['session-recording']);
-        };
+export function Config () {
+    const goBack = () => {
+        cockpit.location.go("/");
+    };
 
-        return (
-            <div className="container-fluid">
-                <div className="row">
-                    <div className="col-md-12">
-                        <ol className="breadcrumb">
-                            <li><a onClick={goBack}>Session
-                                Recording</a></li>
-                            <li className="active">Configuration</li>
-                        </ol>
-                    </div>
-                </div>
-                <div className="row">
-                    <div className="col-md-6">
-                        <div className="panel panel-default">
-                            <div className="panel-heading"><span>General Configuration</span></div>
-                            <div className="panel-body" id="sr_config">
-                                <Config />
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div className="row">
-                    <div className="col-md-4">
-                        <div className="panel panel-default">
-                            <div className="panel-heading"><span>SSSD Configuration</span></div>
-                            <div className="panel-body" id="sssd_config">
-                                <SssdConfig />
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        );
-    }
+    return (
+        <>
+            <Button variant="link" icon={<AngleLeftIcon />} onClick={goBack}>
+                {_("Session Recording")}
+            </Button>
+            <GeneralConfig />
+            <SssdConfig />
+        </>
+    );
 }
-
-ReactDOM.render(<ConfigView />, document.getElementById('view'));

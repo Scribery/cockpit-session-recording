@@ -20,28 +20,24 @@
 import cockpit from 'cockpit';
 import React from 'react';
 import './app.scss';
+import View from "./recordings.jsx";
 
 const _ = cockpit.gettext;
 
 export class Application extends React.Component {
     constructor() {
         super();
-        this.state = { 'hostname': _("Unknown") };
+        this.state = { hostname: _("Unknown") };
 
         cockpit.file('/etc/hostname').read()
                 .done((content) => {
-                    this.setState({ 'hostname': content.trim() });
+                    this.setState({ hostname: content.trim() });
                 });
     }
 
     render() {
         return (
-            <div className="container-fluid">
-                <h2>Starter Kit</h2>
-                <p>
-                    { cockpit.format(_("Running on $0"), this.state.hostname) }
-                </p>
-            </div>
+            <View />
         );
     }
 }

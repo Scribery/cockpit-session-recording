@@ -20,16 +20,47 @@
 import React from 'react';
 import './player.css';
 import { Terminal as Term } from 'xterm';
-let cockpit = require("cockpit");
-let _ = cockpit.gettext;
-let moment = require("moment");
-let Journal = require("journal");
-let $ = require("jquery");
-require("bootstrap-slider");
+import {
+    Button,
+    Chip,
+    ChipGroup,
+    DataList,
+    DataListCell,
+    DataListItem,
+    DataListItemCells,
+    DataListItemRow,
+    ExpandableSection,
+    InputGroup,
+    Progress,
+    TextInput,
+    Toolbar,
+    ToolbarContent,
+    ToolbarItem,
+    ToolbarGroup,
+} from '@patternfly/react-core';
+import {
+    ArrowRightIcon,
+    ExpandIcon,
+    PauseIcon,
+    PlayIcon,
+    RedoIcon,
+    SearchMinusIcon,
+    SearchPlusIcon,
+    SearchIcon,
+    MinusIcon,
+    UndoIcon,
+    ThumbtackIcon,
+    MigrationIcon,
+} from '@patternfly/react-icons';
+const cockpit = require("cockpit");
+const _ = cockpit.gettext;
+const moment = require("moment");
+const Journal = require("journal");
+const $ = require("jquery");
 
-let padInt = function (n, w) {
-    let i = Math.floor(n);
-    let a = Math.abs(i);
+const padInt = function (n, w) {
+    const i = Math.floor(n);
+    const a = Math.abs(i);
     let s = a.toString();
     for (w -= s.length; w > 0; w--) {
         s = '0' + s;
@@ -37,21 +68,21 @@ let padInt = function (n, w) {
     return ((i < 0) ? '-' : '') + s;
 };
 
-let formatDateTime = function (ms) {
+const formatDateTime = function (ms) {
     return moment(ms).format("YYYY-MM-DD HH:mm:ss");
 };
 
 /*
  * Format a time interval from a number of milliseconds.
  */
-let formatDuration = function (ms) {
+const formatDuration = function (ms) {
     let v = Math.floor(ms / 1000);
-    let s = Math.floor(v % 60);
+    const s = Math.floor(v % 60);
     v = Math.floor(v / 60);
-    let m = Math.floor(v % 60);
+    const m = Math.floor(v % 60);
     v = Math.floor(v / 60);
-    let h = Math.floor(v % 24);
-    let d = Math.floor(v / 24);
+    const h = Math.floor(v % 24);
+    const d = Math.floor(v / 24);
     let str = '';
 
     if (d > 0) {
@@ -67,7 +98,7 @@ let formatDuration = function (ms) {
     return (ms < 0 ? '-' : '') + str;
 };
 
-let scrollToBottom = function(id) {
+const scrollToBottom = function(id) {
     const el = document.getElementById(id);
     if (el) {
         el.scrollTop = el.scrollHeight;
@@ -82,15 +113,15 @@ function ErrorList(props) {
     }
 
     return (
-        <React.Fragment>
+        <>
             {list}
-        </React.Fragment>
+        </>
     );
 }
 
 function ErrorItem(props) {
     return (
-        <div className="alert alert-danger alert-dismissable" >
+        <div className="alert alert-danger alert-dismissable">
             <button type="button" className="close" data-dismiss="alert" aria-hidden="true">
                 <span className="pficon pficon-close" />
             </button>
@@ -100,7 +131,7 @@ function ErrorItem(props) {
     );
 }
 
-let ErrorService = class {
+const ErrorService = class {
     constructor() {
         this.addMessage = this.addMessage.bind(this);
         this.errors = [];
@@ -125,7 +156,7 @@ let ErrorService = class {
 /*
  * An auto-loading buffer of recording's packets.
  */
-let PacketBuffer = class {
+const PacketBuffer = class {
     /*
      * Initialize a buffer.
      */
@@ -181,7 +212,7 @@ let PacketBuffer = class {
         /* The journalctl reading the recording */
         this.journalctl = Journal.journalctl(
             this.matchList,
-            {count: "all", follow: false, merge: true});
+            { count: "all", follow: false, merge: true });
         this.journalctl.fail(this.handleError);
         this.journalctl.stream(this.handleStream);
         this.journalctl.done(this.handleDone);
@@ -300,7 +331,7 @@ let PacketBuffer = class {
         this.pktList.push(pkt);
         /* Notify any matching listeners */
         while (this.idxDfdList.length > 0) {
-            let idxDfd = this.idxDfdList[0];
+            const idxDfd = this.idxDfdList[0];
             if (idxDfd[0] < this.pktList.length) {
                 this.idxDfdList.shift();
                 idxDfd[1].resolve();
@@ -363,10 +394,12 @@ let PacketBuffer = class {
                     break;
                 }
                 if (io.length > 0) {
-                    this.addPacket({pos: this.pos,
-                                    is_io: true,
-                                    is_output: is_output,
-                                    io: io.join()});
+                    this.addPacket({
+                        pos: this.pos,
+                        is_io: true,
+                        is_output: is_output,
+                        io: io.join()
+                    });
                     io = [];
                 }
                 this.pos += x;
@@ -379,10 +412,12 @@ let PacketBuffer = class {
                     break;
                 }
                 if (io.length > 0 && is_output) {
-                    this.addPacket({pos: this.pos,
-                                    is_io: true,
-                                    is_output: is_output,
-                                    io: io.join()});
+                    this.addPacket({
+                        pos: this.pos,
+                        is_io: true,
+                        is_output: is_output,
+                        io: io.join()
+                    });
                     io = [];
                 }
                 is_output = false;
@@ -401,10 +436,12 @@ let PacketBuffer = class {
                     break;
                 }
                 if (io.length > 0 && !is_output) {
-                    this.addPacket({pos: this.pos,
-                                    is_io: true,
-                                    is_output: is_output,
-                                    io: io.join()});
+                    this.addPacket({
+                        pos: this.pos,
+                        is_io: true,
+                        is_output: is_output,
+                        io: io.join()
+                    });
                     io = [];
                 }
                 is_output = true;
@@ -423,16 +460,20 @@ let PacketBuffer = class {
                     break;
                 }
                 if (io.length > 0) {
-                    this.addPacket({pos: this.pos,
-                                    is_io: true,
-                                    is_output: is_output,
-                                    io: io.join()});
+                    this.addPacket({
+                        pos: this.pos,
+                        is_io: true,
+                        is_output: is_output,
+                        io: io.join()
+                    });
                     io = [];
                 }
-                this.addPacket({pos: this.pos,
-                                is_io: false,
-                                width: x,
-                                height: y});
+                this.addPacket({
+                    pos: this.pos,
+                    is_io: false,
+                    width: x,
+                    height: y
+                });
                 this.width = x;
                 this.height = y;
                 break;
@@ -447,10 +488,12 @@ let PacketBuffer = class {
         }
 
         if (io.length > 0) {
-            this.addPacket({pos: this.pos,
-                            is_io: true,
-                            is_output: is_output,
-                            io: io.join()});
+            this.addPacket({
+                pos: this.pos,
+                is_io: true,
+                is_output: is_output,
+                io: io.join()
+            });
         }
     }
 
@@ -517,7 +560,7 @@ let PacketBuffer = class {
                 if (!('__CURSOR' in e)) {
                     this.handleError("No cursor in a Journal entry");
                 }
-                this.cursor = e['__CURSOR'];
+                this.cursor = e.__CURSOR;
             }
             /* TODO Refer to entry number/cursor in errors */
             if (!('MESSAGE' in e)) {
@@ -525,16 +568,16 @@ let PacketBuffer = class {
             }
             /* Parse the entry message */
             try {
-                let utf8decoder = new TextDecoder();
+                const utf8decoder = new TextDecoder();
 
                 /* Journalctl stores fields with non-printable characters
                  * in an array of raw bytes formatted as unsigned
                  * integers */
-                if (Array.isArray(e['MESSAGE'])) {
-                    let u8arr = new Uint8Array(e['MESSAGE']);
+                if (Array.isArray(e.MESSAGE)) {
+                    const u8arr = new Uint8Array(e.MESSAGE);
                     this.parseMessage(JSON.parse(utf8decoder.decode(u8arr)));
                 } else {
-                    this.parseMessage(JSON.parse(e['MESSAGE']));
+                    this.parseMessage(JSON.parse(e.MESSAGE));
                 }
             } catch (error) {
                 this.handleError(error);
@@ -555,8 +598,10 @@ let PacketBuffer = class {
         /* Continue with the "following" run  */
         this.journalctl = Journal.journalctl(
             this.matchList,
-            {cursor: this.cursor,
-             follow: true, merge: true, count: "all"});
+            {
+                cursor: this.cursor,
+                follow: true, merge: true, count: "all"
+            });
         this.journalctl.fail(this.handleError);
         this.journalctl.stream(this.handleStream);
         /* NOTE: no "done" handler on purpose */
@@ -582,20 +627,18 @@ class Search extends React.Component {
         };
     }
 
-    handleInputChange(event) {
+    handleInputChange(name, value) {
         event.preventDefault();
-        const name = event.target.name;
-        const value = event.target.value;
-        let state = {};
+        const state = {};
         state[name] = value;
         this.setState(state);
-        cockpit.location.go(cockpit.location.path[0], $.extend(cockpit.location.options, {search_rec: value}));
+        cockpit.location.go(cockpit.location.path[0], $.extend(cockpit.location.options, { search_rec: value }));
     }
 
     handleSearchSubmit() {
         this.journalctl = Journal.journalctl(
             this.props.matchList,
-            {count: "all", follow: false, merge: true, grep: this.state.search});
+            { count: "all", follow: false, merge: true, grep: this.state.search });
         this.journalctl.fail(this.handleError);
         this.journalctl.stream(this.handleStream);
     }
@@ -605,9 +648,15 @@ class Search extends React.Component {
             return JSON.parse(item.MESSAGE);
         });
         items = items.map(item => {
-            return <SearchEntry key={item.id} fastForwardToTS={this.props.fastForwardToTS} pos={item.pos} />;
+            return (
+                <SearchEntry
+                    key={item.id}
+                    fastForwardToTS={this.props.fastForwardToTS}
+                    pos={item.pos}
+                />
+            );
         });
-        this.setState({items: items});
+        this.setState({ items: items });
     }
 
     handleError(data) {
@@ -617,7 +666,7 @@ class Search extends React.Component {
     clearSearchResults() {
         delete cockpit.location.options.search;
         cockpit.location.go(cockpit.location.path[0], cockpit.location.options);
-        this.setState({search: ""});
+        this.setState({ search: "" });
         this.handleStream([]);
     }
 
@@ -629,18 +678,28 @@ class Search extends React.Component {
 
     render() {
         return (
-            <div className="search-wrap">
-                <div className="input-group search-component">
-                    <input type="text" className="form-control" name="search" value={this.state.search} onChange={this.handleInputChange} />
-                    <span className="input-group-btn">
-                        <button className="btn btn-default" onClick={this.handleSearchSubmit}><span className="glyphicon glyphicon-search" /></button>
-                        <button className="btn btn-default" onClick={this.clearSearchResults}><span className="glyphicon glyphicon-remove" /></button>
-                    </span>
-                </div>
-                <div className="search-results">
+            <ToolbarItem>
+                <InputGroup>
+                    <TextInput
+                        id="search_rec"
+                        type="search"
+                        value={this.state.search}
+                        onChange={value => this.handleInputChange("search", value)} />
+                    <Button
+                        variant="control"
+                        onClick={this.handleSearchSubmit}>
+                        <SearchIcon />
+                    </Button>
+                    <Button
+                        variant="control"
+                        onClick={this.clearSearchResults}>
+                        <MinusIcon />
+                    </Button>
+                </InputGroup>
+                <ToolbarItem>
                     {this.state.items}
-                </div>
-            </div>
+                </ToolbarItem>
+            </ToolbarItem>
         );
     }
 }
@@ -653,12 +712,6 @@ class InputPlayer extends React.Component {
             <textarea name="input" id="input-textarea" cols="30" rows="1" value={input} readOnly disabled />
         );
     }
-}
-
-function Slider(props) {
-    return (
-        <input id="slider" type="text" />
-    );
 }
 
 export class Player extends React.Component {
@@ -677,9 +730,6 @@ export class Player extends React.Component {
         this.speedReset = this.speedReset.bind(this);
         this.fastForwardToEnd = this.fastForwardToEnd.bind(this);
         this.skipFrame = this.skipFrame.bind(this);
-        this.initSlider = this.initSlider.bind(this);
-        this.slideStart = this.slideStart.bind(this);
-        this.slideStop = this.slideStop.bind(this);
         this.handleKeyDown = this.handleKeyDown.bind(this);
         this.sync = this.sync.bind(this);
         this.zoomIn = this.zoomIn.bind(this);
@@ -692,6 +742,8 @@ export class Player extends React.Component {
         this.fastForwardToTS = this.fastForwardToTS.bind(this);
         this.sendInput = this.sendInput.bind(this);
         this.clearInputPlayer = this.clearInputPlayer.bind(this);
+        this.handleInfoClick = this.handleInfoClick.bind(this);
+        this.handleProgressClick = this.handleProgressClick.bind(this);
 
         this.state = {
             cols:               80,
@@ -722,6 +774,8 @@ export class Player extends React.Component {
             scale:          1,
             input:          "",
             mark:           0,
+            infoEnabled:    false,
+            curTS:          0,
         };
 
         this.containerHeight = 400;
@@ -730,9 +784,6 @@ export class Player extends React.Component {
         this.error_service = new ErrorService();
         this.reportError = this.error_service.addMessage;
         this.buf = new PacketBuffer(this.props.matchList, this.reportError);
-
-        /* Slider component */
-        this.slider = null;
 
         /* Current recording time, ms */
         this.recTS = 0;
@@ -746,8 +797,6 @@ export class Player extends React.Component {
         /* Timeout ID of the current packet, null if none */
         this.timeout = null;
 
-        this.currentTsPost = 0;
-
         /* True if the next packet should be output without delay */
         this.skip = false;
         /* Playback speed */
@@ -757,9 +806,6 @@ export class Player extends React.Component {
          * Recording time, ms, or null if not fast-forwarding.
          */
         this.fastForwardTo = null;
-
-        /* Track paused state prior to slider movement */
-        this.pausedBeforeSlide = true;
     }
 
     reset() {
@@ -781,7 +827,6 @@ export class Player extends React.Component {
 
         /* Move to beginning of recording */
         this.recTS = 0;
-        this.currentTsPost = parseInt(this.recTS);
         /* Start the playback time */
         this.locTS = performance.now();
 
@@ -851,7 +896,7 @@ export class Player extends React.Component {
     sendInput(pkt) {
         if (pkt) {
             const current_input = this.state.input;
-            this.setState({input: current_input + pkt.io});
+            this.setState({ input: current_input + pkt.io });
         }
     }
 
@@ -866,7 +911,7 @@ export class Player extends React.Component {
         for (;;) {
             /* Get another packet to output, if none */
             for (; this.pkt === null; this.pktIdx++) {
-                let pkt = this.buf.pktList[this.pktIdx];
+                const pkt = this.buf.pktList[this.pktIdx];
                 /* If there are no more packets */
                 if (pkt === undefined) {
                     /*
@@ -886,7 +931,7 @@ export class Player extends React.Component {
             }
 
             /* Get the current local time */
-            let nowLocTS = performance.now();
+            const nowLocTS = performance.now();
 
             /* Ignore the passed time, if we're paused */
             if (this.state.paused) {
@@ -898,7 +943,6 @@ export class Player extends React.Component {
             /* Sync to the local time */
             this.locTS = nowLocTS;
 
-            this.slider.slider('setAttribute', 'max', this.buf.pos);
             /* If we are skipping one packet's delay */
             if (this.skip) {
                 this.skip = false;
@@ -918,10 +962,8 @@ export class Player extends React.Component {
                 return;
             } else {
                 this.recTS += locDelay * this.speed;
-                let pktRecDelay = this.pkt.pos - this.recTS;
-                let pktLocDelay = pktRecDelay / this.speed;
-                this.currentTsPost = parseInt(this.recTS);
-                this.slider.slider('setValue', this.currentTsPost);
+                const pktRecDelay = this.pkt.pos - this.recTS;
+                const pktLocDelay = pktRecDelay / this.speed;
                 /* If we're more than 5 ms early for this packet */
                 if (pktLocDelay > 5) {
                     /* Call us again on time, later */
@@ -934,8 +976,7 @@ export class Player extends React.Component {
             if (this.props.logsEnabled) {
                 this.props.onTsChange(this.pkt.pos);
             }
-            this.currentTsPost = parseInt(this.pkt.pos);
-            this.slider.slider('setValue', this.currentTsPost);
+            this.setState({ curTS: this.pkt.pos });
 
             /* Output the packet */
             if (this.pkt.is_io && !this.pkt.is_output) {
@@ -955,37 +996,37 @@ export class Player extends React.Component {
     }
 
     playPauseToggle() {
-        this.setState({paused: !this.state.paused});
+        this.setState({ paused: !this.state.paused });
     }
 
     play() {
-        this.setState({paused: false});
+        this.setState({ paused: false });
     }
 
     pause() {
-        this.setState({paused: true});
+        this.setState({ paused: true });
     }
 
     speedUp() {
-        let speedExp = this.state.speedExp;
+        const speedExp = this.state.speedExp;
         if (speedExp < 4) {
-            this.setState({speedExp: speedExp + 1});
+            this.setState({ speedExp: speedExp + 1 });
         }
     }
 
     speedDown() {
-        let speedExp = this.state.speedExp;
+        const speedExp = this.state.speedExp;
         if (speedExp > -4) {
-            this.setState({speedExp: speedExp - 1});
+            this.setState({ speedExp: speedExp - 1 });
         }
     }
 
     speedReset() {
-        this.setState({speedExp: 0});
+        this.setState({ speedExp: 0 });
     }
 
     clearInputPlayer() {
-        this.setState({input: ""});
+        this.setState({ input: "" });
     }
 
     rewindToStart() {
@@ -1015,49 +1056,19 @@ export class Player extends React.Component {
         this.sync();
     }
 
-    initSlider() {
-        this.slider = $("#slider").slider({
-            value: 0,
-            tooltip: "hide",
-            enabled: false,
-        });
-        this.slider.slider('on', 'slideStart', this.slideStart);
-        this.slider.slider('on', 'slideStop', this.slideStop);
-        this.slider.slider('enable');
-    }
-
-    slideStart(e) {
-        /*
-         * Necessary because moving the slider position updates state.paused,
-         * which won't represent the actual paused state after this event is
-         * triggered
-         */
-        this.pausedBeforeSlide = this.state.paused;
-        this.pause();
-    }
-
-    slideStop(e) {
-        if (this.fastForwardToTS) {
-            this.fastForwardToTS(e);
-            if (this.pausedBeforeSlide === false) {
-                this.play();
-            }
-        }
-    }
-
     handleKeyDown(event) {
-        let keyCodesFuncs = {
-            "P": this.playPauseToggle,
+        const keyCodesFuncs = {
+            P: this.playPauseToggle,
             "}": this.speedUp,
             "{": this.speedDown,
-            "Backspace": this.speedReset,
+            Backspace: this.speedReset,
             ".": this.skipFrame,
-            "G": this.fastForwardToEnd,
-            "R": this.rewindToStart,
+            G: this.fastForwardToEnd,
+            R: this.rewindToStart,
             "+": this.zoomIn,
             "=": this.zoomIn,
             "-": this.zoomOut,
-            "Z": this.fitIn,
+            Z: this.fitIn,
         };
         if (event.target.nodeName.toLowerCase() !== 'input') {
             if (keyCodesFuncs[event.key]) {
@@ -1088,30 +1099,30 @@ export class Player extends React.Component {
     }
 
     dragPanEnable() {
-        this.setState({drag_pan: true});
+        this.setState({ drag_pan: true });
 
-        let scrollwrap = this.refs.scrollwrap;
+        const scrollwrap = this.refs.scrollwrap;
 
         let clicked = false;
         let clickX;
         let clickY;
 
         $(this.refs.scrollwrap).on({
-            'mousemove': function(e) {
+            mousemove: function(e) {
                 clicked && updateScrollPos(e);
             },
-            'mousedown': function(e) {
+            mousedown: function(e) {
                 clicked = true;
                 clickY = e.pageY;
                 clickX = e.pageX;
             },
-            'mouseup': function() {
+            mouseup: function() {
                 clicked = false;
                 $('html').css('cursor', 'auto');
             }
         });
 
-        let updateScrollPos = function(e) {
+        const updateScrollPos = function(e) {
             $('html').css('cursor', 'move');
             $(scrollwrap).scrollTop($(scrollwrap).scrollTop() + (clickY - e.pageY));
             $(scrollwrap).scrollLeft($(scrollwrap).scrollLeft() + (clickX - e.pageX));
@@ -1119,8 +1130,8 @@ export class Player extends React.Component {
     }
 
     dragPanDisable() {
-        this.setState({drag_pan: false});
-        let scrollwrap = this.refs.scrollwrap;
+        this.setState({ drag_pan: false });
+        const scrollwrap = this.refs.scrollwrap;
         $(scrollwrap).off("mousemove");
         $(scrollwrap).off("mousedown");
         $(scrollwrap).off("mouseup");
@@ -1132,7 +1143,7 @@ export class Player extends React.Component {
             scale = scale + 0.1;
             this.zoom(scale);
         } else {
-            this.setState({term_zoom_max: true});
+            this.setState({ term_zoom_max: true });
         }
     }
 
@@ -1142,7 +1153,7 @@ export class Player extends React.Component {
             scale = scale - 0.1;
             this.zoom(scale);
         } else {
-            this.setState({term_zoom_min: true});
+            this.setState({ term_zoom_min: true });
         }
     }
 
@@ -1163,7 +1174,7 @@ export class Player extends React.Component {
         window.addEventListener("keydown", this.handleKeyDown, false);
 
         if (this.refs.wrapper.offsetWidth) {
-            this.setState({containerWidth: this.refs.wrapper.offsetWidth});
+            this.setState({ containerWidth: this.refs.wrapper.offsetWidth });
         }
         /* Open the terminal */
         this.state.term.open(this.refs.term);
@@ -1171,7 +1182,6 @@ export class Player extends React.Component {
         /* Reset playback */
         this.reset();
         this.fastForwardToTS(0);
-        this.initSlider();
     }
 
     componentDidUpdate(prevProps, prevState) {
@@ -1189,11 +1199,21 @@ export class Player extends React.Component {
         }
     }
 
-    render() {
-        let r = this.props.recording;
+    handleInfoClick() {
+        this.setState({ infoEnabled: !this.state.infoEnabled });
+    }
 
-        let speedExp = this.state.speedExp;
-        let speedFactor = Math.pow(2, Math.abs(speedExp));
+    handleProgressClick(e) {
+        const progress = Math.min(1, Math.max(0, e.clientX / $(".pf-c-progress__bar").width()));
+        const ts = Math.round(progress * this.buf.pos);
+        this.fastForwardToTS(ts);
+    }
+
+    render() {
+        const r = this.props.recording;
+
+        const speedExp = this.state.speedExp;
+        const speedFactor = Math.pow(2, Math.abs(speedExp));
         let speedStr;
 
         if (speedExp > 0) {
@@ -1205,156 +1225,246 @@ export class Player extends React.Component {
         }
 
         const style = {
-            "transform": "scale(" + this.state.scale + ") translate(" + this.state.term_translate + ")",
-            "transformOrigin": "top left",
-            "display": "inline-block",
-            "margin": "0 auto",
-            "position": "absolute",
-            "top": this.state.term_top_style,
-            "left": this.state.term_left_style,
+            transform: "scale(" + this.state.scale + ") translate(" + this.state.term_translate + ")",
+            transformOrigin: "top left",
+            display: "inline-block",
+            margin: "0 auto",
+            position: "absolute",
+            top: this.state.term_top_style,
+            left: this.state.term_left_style,
         };
 
         const scrollwrap = {
-            "minWidth": "630px",
-            "height": this.containerHeight + "px",
-            "backgroundColor": "#f5f5f5",
-            "overflow": this.state.term_scroll,
-            "position": "relative",
+            minWidth: "630px",
+            height: this.containerHeight + "px",
+            backgroundColor: "#f5f5f5",
+            overflow: this.state.term_scroll,
+            position: "relative",
         };
 
-        const to_right = {
-            "float": "right",
-        };
+        const timeStr = formatDuration(this.state.curTS) +
+            " / " +
+            formatDuration(this.buf.pos);
+
+        const progress = (
+            <Progress
+                min={0}
+                max={this.buf.pos}
+                valueText={timeStr}
+                label={timeStr}
+                value={this.state.curTS}
+                onClick={this.handleProgressClick} />
+        );
+
+        const playbackControls = (
+            <ToolbarGroup variant="icon-button-group">
+                <ToolbarItem>
+                    <Button
+                    variant="plain"
+                    id="player-play-pause"
+                    title="Play/Pause - Hotkey: p"
+                    type="button"
+                    onClick={this.playPauseToggle}
+                    >
+                        {this.state.paused ? <PlayIcon /> : <PauseIcon />}
+                    </Button>
+                </ToolbarItem>
+                <ToolbarItem>
+                    <Button
+                    variant="plain"
+                    id="player-skip-frame"
+                    title="Skip Frame - Hotkey: ."
+                    type="button"
+                    onClick={this.skipFrame}
+                    >
+                        <ArrowRightIcon />
+                    </Button>
+                </ToolbarItem>
+                <ToolbarItem>
+                    <Button
+                    variant="plain"
+                    id="player-restart"
+                    title="Restart Playback - Hotkey: Shift-R"
+                    type="button"
+                    onClick={this.rewindToStart}
+                    >
+                        <UndoIcon />
+                    </Button>
+                </ToolbarItem>
+                <ToolbarItem>
+                    <Button
+                    variant="plain"
+                    id="player-fast-forward"
+                    title="Fast-forward to end - Hotkey: Shift-G"
+                    type="button"
+                    onClick={this.fastForwardToEnd}
+                    >
+                        <RedoIcon />
+                    </Button>
+                </ToolbarItem>
+                <ToolbarItem>
+                    <Button
+                    variant="plain"
+                    id="player-speed-down"
+                    title="Speed /2 - Hotkey: {"
+                    type="button"
+                    onClick={this.speedDown}
+                    >
+                        /2
+                    </Button>
+                </ToolbarItem>
+                <ToolbarItem>
+                    <Button
+                    variant="plain"
+                    id="player-speed-up"
+                    title="Speed x2 - Hotkey: }"
+                    type="button"
+                    onClick={this.speedUp}
+                    >
+                        x2
+                    </Button>
+                </ToolbarItem>
+                {speedStr !== "" &&
+                <ToolbarItem>
+                    <ChipGroup categoryName="speed">
+                        <Chip onClick={this.speedReset}>
+                            <span id="player-speed">{speedStr}</span>
+                        </Chip>
+                    </ChipGroup>
+                </ToolbarItem>}
+            </ToolbarGroup>
+        );
+
+        const visualControls = (
+            <ToolbarGroup variant="icon-button-group" alignment={{ default: 'alignRight' }}>
+                <ToolbarItem>
+                    <Button
+                    variant="plain"
+                    id="player-drag-pan"
+                    title="Drag'n'Pan"
+                    onClick={this.dragPan}
+                    >
+                        {this.state.drag_pan ? <ThumbtackIcon /> : <MigrationIcon />}
+                    </Button>
+                </ToolbarItem>
+                <ToolbarItem>
+                    <Button
+                    variant="plain"
+                    id="player-zoom-in"
+                    title="Zoom In - Hotkey: ="
+                    type="button"
+                    onClick={this.zoomIn}
+                    disabled={this.state.term_zoom_max}
+                    >
+                        <SearchPlusIcon />
+                    </Button>
+                </ToolbarItem>
+                <ToolbarItem>
+                    <Button
+                    variant="plain"
+                    id="player-fit-to"
+                    title="Fit To - Hotkey: Z"
+                    type="button"
+                    onClick={this.fitTo}
+                    >
+                        <ExpandIcon />
+                    </Button>
+                </ToolbarItem>
+                <ToolbarItem>
+                    <Button
+                    variant="plain"
+                    id="player-zoom-out"
+                    title="Zoom Out - Hotkey: -"
+                    type="button"
+                    onClick={this.zoomOut}
+                    disabled={this.state.term_zoom_min}
+                    >
+                        <SearchMinusIcon />
+                    </Button>
+                </ToolbarItem>
+            </ToolbarGroup>
+        );
+
+        const panel = (
+            <Toolbar>
+                <ToolbarContent>
+                    {playbackControls}
+                    {visualControls}
+                    <InputPlayer input={this.state.input} />
+                    <Search
+                            matchList={this.props.matchList}
+                            fastForwardToTS={this.fastForwardToTS}
+                            play={this.play}
+                            pause={this.pause}
+                            paused={this.state.paused}
+                            errorService={this.error_service} />
+                    <ErrorList list={this.error_service.errors} />
+                </ToolbarContent>
+            </Toolbar>
+        );
+
+        const recordingInfo = (
+            <DataList isCompact>
+                {
+                    [
+                        { name: _("ID"), value: r.id },
+                        { name: _("Hostname"), value: r.hostname },
+                        { name: _("Boot ID"), value: r.boot_id },
+                        { name: _("Session ID"), value: r.session_id },
+                        { name: _("PID"), value: r.pid },
+                        { name: _("Start"), value: formatDateTime(r.start) },
+                        { name: _("End"), value: formatDateTime(r.end) },
+                        { name: _("Duration"), value: formatDuration(r.end - r.start) },
+                        { name: _("User"), value: r.user }
+                    ].map((item, index) =>
+                        <DataListItem key={index}>
+                            <DataListItemRow>
+                                <DataListItemCells
+                                    dataListCells={[
+                                        <DataListCell key="name">{item.name}</DataListCell>,
+                                        <DataListCell key="value">{item.value}</DataListCell>
+                                    ]} />
+                            </DataListItemRow>
+                        </DataListItem>
+                    )
+                }
+            </DataList>
+        );
+
+        const infoSection = (
+            <ExpandableSection
+                id="btn-recording-info"
+                toggleText={_("Recording Info")}
+                onToggle={this.handleInfoClick}
+                isExpanded={this.state.infoEnabled === true}>
+                {recordingInfo}
+            </ExpandableSection>
+        );
 
         // ensure react never reuses this div by keying it with the terminal widget
         return (
-            <React.Fragment>
-                <div className="row">
-                    <div id="recording-wrap">
-                        <div className="col-md-7 player-wrap">
-                            <div ref="wrapper" className="panel panel-default">
-                                <div className="panel-heading">
-                                    <span>{this.state.title}</span>
-                                </div>
-                                <div className="panel-body">
-                                    <div className={(this.state.drag_pan ? "dragnpan" : "")} style={scrollwrap} ref="scrollwrap">
-                                        <div ref="term" className="console-ct" key={this.state.term} style={style} />
-                                    </div>
-                                </div>
-                                <div className="panel-footer">
-                                    <Slider />
-                                    <button id="player-play-pause" title="Play/Pause - Hotkey: p" type="button" ref="playbtn"
-                                            className="btn btn-default btn-lg margin-right-btn play-btn"
-                                            onClick={this.playPauseToggle}>
-                                        <i className={"fa fa-" + (this.state.paused ? "play" : "pause")}
-                                           aria-hidden="true" />
-                                    </button>
-                                    <button id="player-skip-frame" title="Skip Frame - Hotkey: ." type="button"
-                                            className="btn btn-default btn-lg margin-right-btn"
-                                            onClick={this.skipFrame}>
-                                        <i className="fa fa-step-forward" aria-hidden="true" />
-                                    </button>
-                                    <button id="player-restart" title="Restart Playback - Hotkey: Shift-R" type="button"
-                                            className="btn btn-default btn-lg" onClick={this.rewindToStart}>
-                                        <i className="fa fa-fast-backward" aria-hidden="true" />
-                                    </button>
-                                    <button id="player-fast-forward" title="Fast-forward to end - Hotkey: Shift-G" type="button"
-                                            className="btn btn-default btn-lg margin-right-btn"
-                                            onClick={this.fastForwardToEnd}>
-                                        <i className="fa fa-fast-forward" aria-hidden="true" />
-                                    </button>
-                                    <button id="player-speed-down" title="Speed /2 - Hotkey: {" type="button"
-                                            className="btn btn-default btn-lg" onClick={this.speedDown}>
-                                        /2
-                                    </button>
-                                    <button id="player-speed-reset" title="Reset Speed - Hotkey: Backspace" type="button"
-                                            className="btn btn-default btn-lg" onClick={this.speedReset}>
-                                        1:1
-                                    </button>
-                                    <button id="player-speed-up" title="Speed x2 - Hotkey: }" type="button"
-                                            className="btn btn-default btn-lg margin-right-btn"
-                                            onClick={this.speedUp}>
-                                        x2
-                                    </button>
-                                    <span id="player-speed">{speedStr}</span>
-                                    <span style={to_right}>
-                                        <span className="session_time">{formatDuration(this.currentTsPost)} / {formatDuration(this.buf.pos)}</span>
-                                        <button id="player-drag-pan" title="Drag'n'Pan" type="button" className="btn btn-default btn-lg"
-                                            onClick={this.dragPan}>
-                                            <i className={"fa fa-" + (this.state.drag_pan ? "hand-rock-o" : "hand-paper-o")}
-                                                aria-hidden="true" /></button>
-                                        <button id="player-zoom-in" title="Zoom In - Hotkey: =" type="button" className="btn btn-default btn-lg"
-                                            onClick={this.zoomIn} disabled={this.state.term_zoom_max}>
-                                            <i className="fa fa-search-plus" aria-hidden="true" /></button>
-                                        <button id="player-fit-to" title="Fit To - Hotkey: Z" type="button" className="btn btn-default btn-lg"
-                                            onClick={this.fitTo}><i className="fa fa-expand" aria-hidden="true" /></button>
-                                        <button id="player-zoom-out" title="Zoom Out - Hotkey: -" type="button" className="btn btn-default btn-lg"
-                                            onClick={this.zoomOut} disabled={this.state.term_zoom_min}>
-                                            <i className="fa fa-search-minus" aria-hidden="true" /></button>
-                                    </span>
-                                    <div id="input-player-wrap">
-                                        <InputPlayer input={this.state.input} />
-                                    </div>
-                                    <div>
-                                        <Search matchList={this.props.matchList} fastForwardToTS={this.fastForwardToTS} play={this.play} pause={this.pause} paused={this.state.paused} errorService={this.error_service} />
-                                    </div>
-                                    <div className="clearfix" />
-                                    <ErrorList list={this.error_service.errors} />
-                                </div>
-                            </div>
+            <>
+                <div ref="wrapper" className="panel panel-default">
+                    <div className="panel-heading">
+                        <span>{this.state.title}</span>
+                    </div>
+                    <div className="panel-body">
+                        <div
+                            className={(this.state.drag_pan ? "dragnpan" : "")}
+                            style={scrollwrap}
+                            ref="scrollwrap">
+                            <div
+                                ref="term"
+                                className="console-ct"
+                                key={this.state.term}
+                                style={style} />
                         </div>
                     </div>
-                    <div className="col-md-5">
-                        <div className="panel panel-default">
-                            <div className="panel-heading">
-                                <span>{_("Recording")}</span>
-                            </div>
-                            <div className="panel-body">
-                                <table className="form-table-ct">
-                                    <tbody>
-                                        <tr>
-                                            <td>{_("ID")}</td>
-                                            <td>{r.id}</td>
-                                        </tr>
-                                        <tr>
-                                            <td>{_("Hostname")}</td>
-                                            <td>{r.hostname}</td>
-                                        </tr>
-                                        <tr>
-                                            <td>{_("Boot ID")}</td>
-                                            <td>{r.boot_id}</td>
-                                        </tr>
-                                        <tr>
-                                            <td>{_("Session ID")}</td>
-                                            <td>{r.session_id}</td>
-                                        </tr>
-                                        <tr>
-                                            <td>{_("PID")}</td>
-                                            <td>{r.pid}</td>
-                                        </tr>
-                                        <tr>
-                                            <td>{_("Start")}</td>
-                                            <td>{formatDateTime(r.start)}</td>
-                                        </tr>
-                                        <tr>
-                                            <td>{_("End")}</td>
-                                            <td>{formatDateTime(r.end)}</td>
-                                        </tr>
-                                        <tr>
-                                            <td>{_("Duration")}</td>
-                                            <td>{formatDuration(r.end - r.start)}</td>
-                                        </tr>
-                                        <tr>
-                                            <td>{_("User")}</td>
-                                            <td>{r.user}</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
+                    {progress}
+                    {panel}
                 </div>
-            </React.Fragment>
+                {infoSection}
+            </>
         );
     }
 

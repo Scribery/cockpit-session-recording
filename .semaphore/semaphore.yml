@@ -38,4 +38,6 @@ blocks:
       epilogue:
         on_fail:
           commands:
-            - artifact push job .
+            - mkdir testfails
+            - cp TestApplication* testfails
+            - artifact push job testfails

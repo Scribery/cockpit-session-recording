@@ -5,6 +5,9 @@
 
 import os
 import sys
+import time
+import json
+import configparser
 
 # import Cockpit's machinery for test VMs and its browser test API
 TEST_DIR = os.path.dirname(__file__)
@@ -21,12 +24,31 @@ class TestApplication(MachineCase):
         b.wait_present("#app")
         return b, m
 
-    def _sel_rec(self, index=0):
-        page = (
-            "0f25700a28c44b599869745e5fda8b0c-7106-121e79"
-            if not index
-            else "0f25700a28c44b599869745e5fda8b0c-7623-135541"
-        )
+    def _sel_rec(self, recording):
+        '''
+        rec1:
+          whoami
+          id
+          echo thisisatest123
+          sleep 16
+          echo thisisanothertest456
+          exit
+
+        rec2:
+          echo "Extra Commands"
+          sudo systemctl daemon-reload
+          sudo ssh root@localhost
+          exit
+
+        binaryrec:
+          cat /usr/bin/gzip
+        '''
+        recordings = {'rec1': '0f25700a28c44b599869745e5fda8b0c-7106-121e79',
+		      'rec2': '0f25700a28c44b599869745e5fda8b0c-7623-135541',
+		      'binaryrec': '6c652ee938b3485894dbacbb8c7c2c61-5a4-38a5'}
+
+        page = recordings[recording]
+
         self.browser.go(f"/session-recording#/{page}")
 
     def _term_line(self, lineno):
@@ -34,15 +56,23 @@ class TestApplication(MachineCase):
 
     def testPlay(self):
         b, _ = self._login()
-        self._sel_rec()
+        self._sel_rec('rec1')
         b.click("#player-play-pause")
         b.wait_in_text(self._term_line(1), "localhost")
+
+    def testPlayBinary(self):
+        b, _ = self._login()
+        self._sel_rec('binaryrec')
+        b.click("#player-play-pause")
+        time.sleep(5)
+        b.wait_in_text(self._term_line(21), "�")
+        b.wait_in_text(self._term_line(25), "exit")
 
     def testFastforwardControls(self):
         progress = ".pf-c-progress__indicator"
 
         b, _ = self._login()
-        self._sel_rec()
+        self._sel_rec('rec1')
         # fast forward
         b.click("#player-fast-forward")
         b.wait_in_text(self._term_line(12), "exit")
@@ -54,7 +84,7 @@ class TestApplication(MachineCase):
 
     def testSpeedControls(self):
         b, _ = self._login()
-        self._sel_rec()
+        self._sel_rec('rec1')
         # increase speed
         b.wait_present("#player-speed-up")
         b.click("#player-speed-up")
@@ -98,7 +128,7 @@ class TestApplication(MachineCase):
         )
 
         b, _ = self._login()
-        self._sel_rec()
+        self._sel_rec('rec1')
         # Wait for terminal with scale(1)
         b.wait_present(default_scale_sel)
         # Zoom in x3
@@ -117,7 +147,7 @@ class TestApplication(MachineCase):
 
     def testSkipFrame(self):
         b, _ = self._login()
-        self._sel_rec()
+        self._sel_rec('rec1')
         b.wait_present(self._term_line(1))
         # loop until 3 valid frames have passed
         while "localhost" not in b.text(self._term_line(1)):
@@ -125,10 +155,8 @@ class TestApplication(MachineCase):
         b.wait_in_text(self._term_line(1), "localhost")
 
     def testPlaybackPause(self):
-        import time
-
         b, _ = self._login()
-        self._sel_rec()
+        self._sel_rec('rec1')
         # Start and pause the player
         b.click("#player-restart")
         b.click("#player-play-pause")
@@ -140,8 +168,6 @@ class TestApplication(MachineCase):
         b.click("#player-play-pause")
 
     def testSessionRecordingConf(self):
-        import time, json, configparser
-
         b, m = self._login()
         b.click("#btn-config")
 
@@ -240,7 +266,7 @@ class TestApplication(MachineCase):
 
     def testDisplayDrag(self):
         b, _ = self._login()
-        self._sel_rec()
+        self._sel_rec('rec1')
         # start playback and pause in middle
         b.click("#player-play-pause")
         b.wait_in_text(self._term_line(1), "localhost")
@@ -259,7 +285,7 @@ class TestApplication(MachineCase):
     def testLogCorrelation(self):
         b, _ = self._login()
         # select the recording with the extra logs
-        self._sel_rec(1)
+        self._sel_rec('rec2')
         b.click("#btn-logs-view .pf-c-expandable-section__toggle")
         # fast forward until the end
         while "exit" not in b.text(self._term_line(22)):
@@ -272,7 +298,7 @@ class TestApplication(MachineCase):
         play_scale_sel = '.console-ct[style^="transform: scale(0.4"]'
         zoom_one_scale_sel = '.console-ct[style^="transform: scale(0.5"]'
         b, _ = self._login()
-        self._sel_rec()
+        self._sel_rec('rec1')
         # set speed x16 and begin playing, expecting a size adjustment
         for _ in range(4):
             b.click("#player-speed-up")
@@ -289,8 +315,6 @@ class TestApplication(MachineCase):
         b.wait_present(play_scale_sel)
 
     def _filter(self, inp, occ_dict):
-        import time
-
         # ignore errors from half-entered timestamps due to searches occuring
         # before `set_input_text` is complete
         self.allow_journal_messages(".*timestamp.*")

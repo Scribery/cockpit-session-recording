@@ -325,6 +325,10 @@ class TestApplication(MachineCase):
                 # enter the search term and wait for the results to return
                 b.set_input_text(inp, term)
                 time.sleep(5)
+                print("occ: " + str(occ))
+                print("term: " + term)
+                print("table text: " + b.text(".pf-c-table"))
+                print("\n\n")
                 self.assertEqual(b.text(".pf-c-table").count("contractor"), occ)
 
     def testSearch(self):

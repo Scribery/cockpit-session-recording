@@ -88,11 +88,6 @@ const formatDateTime = function (ms) {
     return moment(ms).format("YYYY-MM-DD HH:mm:ss");
 };
 
-const formatDateTimeOffset = function (ms, offset) {
-    return moment(ms).utcOffset(offset)
-            .format("YYYY-MM-DD HH:mm:ss");
-};
-
 const formatUTC = function(date) {
     return moment(date).utc()
             .format("YYYY-MM-DD HH:mm:ss") + " UTC";
@@ -188,7 +183,6 @@ class Logs extends React.Component {
         this.getLogs = this.getLogs.bind(this);
         this.loadLater = this.loadLater.bind(this);
         this.loadForTs = this.loadForTs.bind(this);
-        this.getServerTimeOffset = this.getServerTimeOffset.bind(this);
         this.journalCtl = null;
         this.entries = [];
         this.start = null;
@@ -200,16 +194,6 @@ class Logs extends React.Component {
             after: null,
             entries: [],
         };
-    }
-
-    getServerTimeOffset() {
-        cockpit.spawn(["date", "+%s:%:z"], { err: "message" })
-                .done((data) => {
-                    this.setState({ serverTimeOffset: data.slice(data.indexOf(":") + 1) });
-                })
-                .fail((ex) => {
-                    console.log("Couldn't calculate server time offset: " + cockpit.message(ex));
-                });
     }
 
     journalctlError(error) {
@@ -244,13 +228,8 @@ class Logs extends React.Component {
             let start = null;
             let end = null;
 
-            if (this.state.serverTimeOffset != null) {
-                start = formatDateTimeOffset(this.start, this.state.serverTimeOffset);
-                end = formatDateTimeOffset(this.end, this.state.serverTimeOffset);
-            } else {
-                start = formatDateTime(this.start);
-                end = formatDateTime(this.end);
-            }
+            start = formatDateTime(this.start);
+            end = formatDateTime(this.end);
 
             const options = {
                 since: start,
@@ -258,6 +237,7 @@ class Logs extends React.Component {
                 follow: false,
                 count: "all",
                 merge: true,
+                utc: true,
             };
 
             if (this.state.after != null) {
@@ -283,10 +263,6 @@ class Logs extends React.Component {
     loadForTs(ts) {
         this.end = this.start + ts;
         this.getLogs();
-    }
-
-    componentDidMount() {
-        this.getServerTimeOffset();
     }
 
     componentDidUpdate() {

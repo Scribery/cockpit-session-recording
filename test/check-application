@@ -17,11 +17,11 @@ from testlib import *
 
 # Test with pre-recorded journal with tlog UID 981
 class TestApplication(MachineCase):
-    def _login(self):
-        self.login_and_go("/session-recording")
+    def _login(self, loc="/session-recording", wait="#app"):
+        self.login_and_go(loc)
         b = self.browser
         m = self.machine
-        b.wait_present("#app")
+        b.wait_present(wait)
         return b, m
 
     def _sel_rec(self, recording):
@@ -382,6 +382,15 @@ class TestApplication(MachineCase):
                 2: {"2020-06-02", "2020-06-01 12:31:00"},
             },
         )
+
+    def testAppMenu(self):
+        srrow = ".app-list .pf-c-data-list__item-row:" \
+                "contains('Session Recording')"
+        srbut = "{} button:contains('Session Recording')" \
+                "".format(srrow)
+        b, _ = self._login("/apps", srrow)
+        b.click(srbut)
+        b.wait_present("#app")
 
 
 if __name__ == "__main__":

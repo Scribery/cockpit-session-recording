@@ -12,6 +12,6 @@ RUN sudo dnf -y install \
         rpm-build \
         rpmdevtools \
         rsync \
-        tar
+        tar 
 
 RUN cd cockpit-session-recording && make rpm

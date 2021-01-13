@@ -28,6 +28,43 @@ appstream-util validate-relax --nonet %{buildroot}/%{_datadir}/metainfo/*
 %{_datadir}/metainfo/org.cockpit-project.session-recording.metainfo.xml
 
 %changelog
+* Wed Jan 13 2021 Justin Stephenson <jstephen@redhat.com> - 7-1
+- Release v7
+- Remove bots sudo rm from Makefile
+- Use journalctl --utc for Logs view to handle DST
+- Add Applications Menu test
+- Install cockpit-packagekit in local VM
+- Set timezone for Logs Correlation test
+
+* Mon Oct 12 2020 Justin Stephenson <jstephen@redhat.com> - 6-1
+- Release v6
+- Bump testlib to 229
+- Add binary recording test
+
+* Wed May 20 2020 Justin Stephenson <jstephen@redhat.com> - 4-1
+- Release v4
+- Update parent id in metainfo file
+- Update package manifest
+- Fix rpmmacro to resolve correc    t path on CentOS7
+- Handle byte-array encoded journal data
+- Don't clobber cockpit bots directory
+- Move code out of deprecated React lifecycle functions
+
+* Mon Nov 25 2019 Justin Stephenson <jstephen@redhat.com> - 3-1
+- Release v3
+- Reset Logs View on Player Rewind
+- Configuration page UI CSS Improvements
+
+* Wed Sep 11 2019 Justin Stephenson <jstephen@redhat.com> - 2-1
+- Release 2
+- Optimize performance when playing back flooded output recordings.
+- Make Logs View optional rendered with a toggle button.
+- Make Logs component a child of Recording component.
+- Fix Recording page column sorting in Google Chrome.
+- CSS updates for Patternfly 4 compatibility.
+- Replace term.js with maintained xterm.js library.
+- Fix hostname and username filtering.
+
 * Thu Apr 4 2019 Kirill Glebov <kgliebov@redhat.com> - 1-1
 - Release 1
 - First release. Includes logs correlation, player controls, journal remote support.

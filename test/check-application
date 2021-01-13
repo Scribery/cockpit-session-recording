@@ -283,7 +283,9 @@ class TestApplication(MachineCase):
         self.assertNotEqual(b.attr(".dragnpan", "scrollLeft"), 0)
 
     def testLogCorrelation(self):
-        b, _ = self._login()
+        b, m = self._login()
+        # make sure system is on expected timezone EST
+        m.execute("timedatectl set-timezone America/New_York")
         # select the recording with the extra logs
         self._sel_rec('rec2')
         b.click("#btn-logs-view .pf-c-expandable-section__toggle")

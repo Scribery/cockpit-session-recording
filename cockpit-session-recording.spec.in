@@ -69,3 +69,4 @@ appstream-util validate-relax --nonet %{buildroot}/%{_datadir}/metainfo/*
 * Thu Apr 4 2019 Kirill Glebov <kgliebov@redhat.com> - 1-1
 - Release 1
 - First release. Includes logs correlation, player controls, journal remote support.
+

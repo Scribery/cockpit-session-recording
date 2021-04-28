@@ -296,10 +296,14 @@ class TestApplication(MachineCase):
         b.wait_present(".pf-c-data-list:contains('authentication failure')")
 
     def testZoomSpeedControls(self):
+        b, m = self._login()
         default_scale_sel = '.console-ct[style^="transform: scale(1)"]'
-        play_scale_sel = '.console-ct[style^="transform: scale(0.4"]'
-        zoom_one_scale_sel = '.console-ct[style^="transform: scale(0.5"]'
-        b, _ = self._login()
+        if m.image.startswith('rhel') or m.image.startswith('centos'):
+            play_scale_sel = '.console-ct[style^="transform: scale(0.3"]'
+            zoom_one_scale_sel = '.console-ct[style^="transform: scale(0.4"]'
+        else:
+            play_scale_sel = '.console-ct[style^="transform: scale(0.4"]'
+            zoom_one_scale_sel = '.console-ct[style^="transform: scale(0.5"]'
         self._sel_rec('rec1')
         # set speed x16 and begin playing, expecting a size adjustment
         for _ in range(4):

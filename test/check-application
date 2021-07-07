@@ -22,6 +22,7 @@ class TestApplication(MachineCase):
         b = self.browser
         m = self.machine
         b.wait_present(wait)
+        self.allow_journal_messages('.*type=1400.*avc:  denied .* comm="systemctl".*')
         return b, m
 
     def _sel_rec(self, recording):

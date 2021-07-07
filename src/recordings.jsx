@@ -58,6 +58,7 @@ import {
     SearchIcon
 } from "@patternfly/react-icons";
 import { global_danger_color_200 } from "@patternfly/react-tokens";
+import { debounce } from 'throttle-debounce';
 
 const $ = require("jquery");
 const cockpit = require("cockpit");
@@ -741,6 +742,11 @@ export default class View extends React.Component {
         this.setState({ recordingList: [] });
     }
 
+    throttleJournalRestart = debounce(300, () => {
+        this.clearRecordings();
+        this.journalctlRestart();
+    });
+
     handleInputChange(name, value) {
         const state = {};
         state[name] = value;
@@ -793,8 +799,7 @@ export default class View extends React.Component {
             this.state.hostname !== prevState.hostname ||
             this.state.search !== prevState.search
         ) {
-            this.clearRecordings();
-            this.journalctlRestart();
+            this.throttleJournalRestart();
         }
     }
 

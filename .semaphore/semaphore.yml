@@ -21,7 +21,7 @@ blocks:
           - make test/common
           - make bots
       jobs:
-      - name: Check fedora-32
+      - name: Check fedora-34
         commands:
           - export TEST_OS=fedora-32
           - bots/image-customize -v -i cockpit-ws -i cockpit-packagekit -i `pwd`/cockpit-session-recording*.noarch.rpm -s `pwd`/test/vm.install $TEST_OS

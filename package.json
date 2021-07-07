@@ -58,6 +58,7 @@
     "raw-loader": "^0.5.1",
     "react": "16.13.1",
     "react-dom": "16.13.1",
+    "throttle-debounce": "2.3.0",
     "xterm": "^3.14.5"
   }
 }

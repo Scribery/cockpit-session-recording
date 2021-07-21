@@ -327,6 +327,7 @@ class TestApplication(MachineCase):
         self.allow_journal_messages(".*timestamp.*")
         # login and test inputs
         b, _ = self._login()
+        time.sleep(5)
         for occ in occ_dict:
             for term in occ_dict[occ]:
                 # enter the search term and wait for the results to return

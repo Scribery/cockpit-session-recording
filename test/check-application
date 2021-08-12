@@ -235,11 +235,6 @@ class TestApplication(MachineCase):
         b.click("#btn-save-sssd-conf")
         time.sleep(1)
         m.download(conf_file, save_file)
-        # Download test with scope 'None'
-        b.set_val("#scope", "none")
-        b.click("#btn-save-sssd-conf")
-        time.sleep(1)
-        m.download(conf_file, test_none_file)
         # Download test with scope 'Some'
         b.set_val("#scope", "some")
         b.set_input_text("#users", "test users")
@@ -252,9 +247,13 @@ class TestApplication(MachineCase):
         b.click("#btn-save-sssd-conf")
         time.sleep(1)
         m.download(conf_file, test_all_file)
+        # Download test with scope 'None'
+        b.set_val("#scope", "none")
+        b.click("#btn-save-sssd-conf")
+        time.sleep(1)
+        m.download(conf_file, test_none_file)
         # Revert to the previous config before testing to ensure test continuity
         m.upload([save_file], conf_file_path)
-        m.execute("systemctl restart sssd")
         # Check that the configs reflected the changes
         conf = configparser.ConfigParser()
         conf.read_file(open(test_none_file, "r"))

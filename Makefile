@@ -135,6 +135,9 @@ $(VM_IMAGE): $(RPMFILE) bots
 	bots/image-customize -v -r "usermod -u 981 tlog || true" $(TEST_OS)
 	bots/image-customize -v -u ./test/files/1.journal:/var/log/journal/1.journal $(TEST_OS)
 	bots/image-customize -v -u ./test/files/binary-rec.journal:/var/log/journal/binary-rec.journal $(TEST_OS)
+	bots/image-customize -v -u ./test/files/sssd.conf:/etc/sssd/sssd.conf $(TEST_OS)
+	bots/image-customize -v -r "chmod 600 /etc/sssd/sssd.conf || true" $(TEST_OS)
+	bots/image-customize -v -r "chown root:root /etc/sssd/sssd.conf" $(TEST_OS)
 
 # convenience target for the above
 vm: $(VM_IMAGE)

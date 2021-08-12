@@ -254,6 +254,7 @@ class TestApplication(MachineCase):
         m.download(conf_file, test_all_file)
         # Revert to the previous config before testing to ensure test continuity
         m.upload([save_file], conf_file_path)
+        m.execute("systemctl restart sssd")
         # Check that the configs reflected the changes
         conf = configparser.ConfigParser()
         conf.read_file(open(test_none_file, "r"))

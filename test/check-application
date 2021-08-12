@@ -398,6 +398,7 @@ class TestApplication(MachineCase):
                 "".format(srrow)
         b, _ = self._login("/apps", srrow)
         b.click(srbut)
+        b.enter_page("/session-recording")
         b.wait_present("#app")
 
 if __name__ == "__main__":

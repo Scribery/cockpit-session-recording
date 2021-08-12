@@ -397,6 +397,8 @@ class TestApplication(MachineCase):
         srbut = "{} button:contains('Session Recording')" \
                 "".format(srrow)
         b, _ = self._login("/apps", srrow)
+        self.allow_journal_messages(".*chromium-browser.appdata.xml.*",
+                                    ".*xml.etree.ElementTree.ParseError:.*")
         b.click(srbut)
         b.enter_page("/session-recording")
         b.wait_present("#app")

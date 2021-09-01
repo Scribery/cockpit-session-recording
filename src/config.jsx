@@ -398,6 +398,8 @@ class SssdConfig extends React.Component {
         this.state = {
             scope: "",
             users: "",
+            exclude_users: "",
+            exclude_groups: "",
             groups: "",
             submitting: false,
         };
@@ -456,8 +458,20 @@ class SssdConfig extends React.Component {
         const obj = {};
         obj.session_recording = {};
         obj.session_recording.scope = this.state.scope;
-        obj.session_recording.users = this.state.users;
-        obj.session_recording.groups = this.state.groups;
+        switch (this.state.scope) {
+        case "all":
+            obj.session_recording.exclude_users = this.state.exclude_users;
+            obj.session_recording.exclude_groups = this.state.exclude_groups;
+            break;
+        case "none":
+            break;
+        case "some":
+            obj.session_recording.users = this.state.users;
+            obj.session_recording.groups = this.state.groups;
+            break;
+        default:
+            break;
+        }
         this.confSave(obj);
         e.preventDefault();
     }
@@ -496,6 +510,23 @@ class SssdConfig extends React.Component {
                             id="groups"
                             value={this.state.groups}
                             onChange={groups => this.setState({ groups })}
+                        />
+                    </FormGroup>
+                </>}
+                {this.state.scope === "all" &&
+                <>
+                    <FormGroup label={_("Exclude Users")}>
+                        <TextInput
+                            id="exclude_users"
+                            value={this.state.exclude_users}
+                            onChange={exclude_users => this.setState({ exclude_users })}
+                        />
+                    </FormGroup>
+                    <FormGroup label={_("Exclude Groups")}>
+                        <TextInput
+                            id="exclude_groups"
+                            value={this.state.exclude_groups}
+                            onChange={exclude_groups => this.setState({ exclude_groups })}
                         />
                     </FormGroup>
                 </>}

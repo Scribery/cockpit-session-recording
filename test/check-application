@@ -244,6 +244,8 @@ class TestApplication(MachineCase):
         m.download(conf_file, test_some_file)
         # Download test with scope 'All'
         b.set_val("#scope", "all")
+        b.set_input_text("#exclude_users", "testuser1")
+        b.set_input_text("#exclude_groups", "testgroup1")
         b.click("#btn-save-sssd-conf")
         time.sleep(1)
         m.download(conf_file, test_all_file)
@@ -256,14 +258,16 @@ class TestApplication(MachineCase):
         m.upload([save_file], conf_file_path)
         # Check that the configs reflected the changes
         conf = configparser.ConfigParser()
-        conf.read_file(open(test_none_file, "r"))
-        self.assertEqual(conf["session_recording"]["scope"], "none")
         conf.read_file(open(test_some_file, "r"))
         self.assertEqual(conf["session_recording"]["scope"], "some")
         self.assertEqual(conf["session_recording"]["users"], "test users")
         self.assertEqual(conf["session_recording"]["groups"], "test groups")
         conf.read_file(open(test_all_file, "r"))
         self.assertEqual(conf["session_recording"]["scope"], "all")
+        self.assertEqual(conf["session_recording"]["exclude_users"], "testuser1")
+        self.assertEqual(conf["session_recording"]["exclude_groups"], "testgroup1")
+        conf.read_file(open(test_none_file, "r"))
+        self.assertEqual(conf["session_recording"]["scope"], "none")
 
     def testDisplayDrag(self):
         b, _ = self._login()

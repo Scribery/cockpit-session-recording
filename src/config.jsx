@@ -22,6 +22,7 @@ import React from "react";
 import {
     Breadcrumb, BreadcrumbItem,
     Button,
+    Flex,
     Form,
     FormGroup,
     FormSelect,
@@ -384,7 +385,7 @@ class GeneralConfig extends React.Component {
         return (
             <Card>
                 <CardTitle>General Config</CardTitle>
-                <CardBody style={{ maxWidth: "500px" }}>{form}</CardBody>
+                <CardBody>{form}</CardBody>
             </Card>
         );
     }
@@ -547,7 +548,7 @@ class SssdConfig extends React.Component {
         return (
             <Card>
                 <CardTitle>SSSD Config</CardTitle>
-                <CardBody style={{ maxWidth: "500px" }}>{form}</CardBody>
+                <CardBody>{form}</CardBody>
             </Card>
         );
     }
@@ -573,8 +574,10 @@ groupProps={{ sticky: 'top' }}
                   </Breadcrumb>
               }>
             <PageSection>
-                <GeneralConfig />
-                <SssdConfig />
+                <Flex className="config-container">
+                    <GeneralConfig />
+                    <SssdConfig />
+                </Flex>
             </PageSection>
         </Page>
     );

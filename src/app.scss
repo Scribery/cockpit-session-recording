@@ -1,3 +1,16 @@
 p {
     font-weight: bold;
 }
+
+// Ensure UI fills the entire page (and does not run over)
+.ct-page-fill {
+  height: 100% !important;
+}
+
+.config-container {
+    row-gap: var(--pf-global--spacer--sm);
+
+    > .pf-c-card {
+        min-width: 30rem;
+    }
+}

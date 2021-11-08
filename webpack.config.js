@@ -4,6 +4,7 @@ const extract = require("mini-css-extract-plugin");
 const fs = require("fs");
 const webpack = require("webpack");
 const CompressionPlugin = require("compression-webpack-plugin");
+const ESLintPlugin = require('eslint-webpack-plugin');
 
 var externals = {
     cockpit: "cockpit",
@@ -76,7 +77,10 @@ info.files.forEach(function (value) {
 });
 info.files = files;
 
-var plugins = [new copy(info.files), new extract({ filename: "[name].css" })];
+var plugins = [
+    new copy(info.files), new extract({ filename: "[name].css" }),
+    new ESLintPlugin({ extensions: ["js", "jsx"], exclude: ["spec", "node_modules", "src/lib"] }),
+];
 
 /* Only minimize when in production mode */
 if (production) {
@@ -125,12 +129,6 @@ module.exports = {
     devtool: "source-map",
     module: {
         rules: [
-            {
-                enforce: "pre",
-                exclude: /node_modules/,
-                loader: "eslint-loader",
-                test: /\.(js|jsx)$/,
-            },
             {
                 exclude: /node_modules/,
                 use: babel_loader,

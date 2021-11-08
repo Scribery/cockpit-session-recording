@@ -20,6 +20,7 @@
 
 import React from "react";
 import {
+    Breadcrumb, BreadcrumbItem,
     Button,
     Form,
     FormGroup,
@@ -37,9 +38,10 @@ import {
     EmptyStateIcon,
     Title,
     EmptyStateBody,
-    EmptyStateVariant
+    EmptyStateVariant,
+    Page, PageSection,
 } from "@patternfly/react-core";
-import { AngleLeftIcon, ExclamationCircleIcon } from "@patternfly/react-icons";
+import { ExclamationCircleIcon } from "@patternfly/react-icons";
 import { global_danger_color_200 } from "@patternfly/react-tokens";
 
 const json = require('comment-json');
@@ -557,12 +559,23 @@ export function Config () {
     };
 
     return (
-        <>
-            <Button variant="link" icon={<AngleLeftIcon />} onClick={goBack}>
-                {_("Session Recording")}
-            </Button>
-            <GeneralConfig />
-            <SssdConfig />
-        </>
+        <Page
+groupProps={{ sticky: 'top' }}
+              isBreadcrumbGrouped
+              breadcrumb={
+                  <Breadcrumb className='machines-listing-breadcrumb'>
+                      <BreadcrumbItem to='#' onClick={goBack}>
+                          {_("Session Recording")}
+                      </BreadcrumbItem>
+                      <BreadcrumbItem isActive>
+                          {_("Settings")}
+                      </BreadcrumbItem>
+                  </Breadcrumb>
+              }>
+            <PageSection>
+                <GeneralConfig />
+                <SssdConfig />
+            </PageSection>
+        </Page>
     );
 }

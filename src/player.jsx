@@ -21,6 +21,8 @@ import React from 'react';
 import './player.css';
 import { Terminal as Term } from 'xterm';
 import {
+    Alert,
+    AlertGroup,
     Button,
     Chip,
     ChipGroup,
@@ -52,10 +54,12 @@ import {
     ThumbtackIcon,
     MigrationIcon,
 } from '@patternfly/react-icons';
+
+import { journal } from 'journal';
+
 const cockpit = require("cockpit");
 const _ = cockpit.gettext;
 const moment = require("moment");
-const Journal = require("journal");
 const $ = require("jquery");
 
 const padInt = function (n, w) {
@@ -113,21 +117,17 @@ function ErrorList(props) {
     }
 
     return (
-        <>
+        <AlertGroup>
             {list}
-        </>
+        </AlertGroup>
     );
 }
 
 function ErrorItem(props) {
     return (
-        <div className="alert alert-danger alert-dismissable">
-            <button type="button" className="close" data-dismiss="alert" aria-hidden="true">
-                <span className="pficon pficon-close" />
-            </button>
-            <span className="pficon pficon-error-circle-o" />
+        <Alert variant="danger" isInline>
             {props.message}
-        </div>
+        </Alert>
     );
 }
 
@@ -210,7 +210,7 @@ const PacketBuffer = class {
         /* Error which stopped the loading */
         this.error = null;
         /* The journalctl reading the recording */
-        this.journalctl = Journal.journalctl(
+        this.journalctl = journal.journalctl(
             this.matchList,
             { count: "all", follow: false, merge: true });
         this.journalctl.fail(this.handleError);
@@ -596,7 +596,7 @@ const PacketBuffer = class {
             this.journalctl = null;
         }
         /* Continue with the "following" run  */
-        this.journalctl = Journal.journalctl(
+        this.journalctl = journal.journalctl(
             this.matchList,
             {
                 cursor: this.cursor,
@@ -636,7 +636,7 @@ class Search extends React.Component {
     }
 
     handleSearchSubmit() {
-        this.journalctl = Journal.journalctl(
+        this.journalctl = journal.journalctl(
             this.props.matchList,
             { count: "all", follow: false, merge: true, grep: this.state.search });
         this.journalctl.fail(this.handleError);

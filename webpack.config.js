@@ -14,8 +14,9 @@ const srcdir = (process.env.SRCDIR || __dirname) + path.sep + "src";
 const builddir = process.env.SRCDIR || __dirname;
 const distdir = builddir + path.sep + "dist";
 const section = process.env.ONLYDIR || null;
-const libdir = path.resolve(srcdir, "pkg" + path.sep + "lib")
-const nodedir = path.resolve(process.env.SRCDIR || __dirname, "node_modules");
+const libdir = path.resolve(srcdir, "lib")
+// absolute path disables recursive module resolution, so build a relative one
+const nodedir = path.relative(process.cwd(), path.resolve((process.env.SRCDIR || __dirname), "node_modules"));
 
 /* A standard nodejs and webpack pattern */
 var production = process.env.NODE_ENV === "production";

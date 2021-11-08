@@ -59,12 +59,12 @@ import {
 } from "@patternfly/react-icons";
 import { global_danger_color_200 } from "@patternfly/react-tokens";
 import { debounce } from 'throttle-debounce';
+import { journal } from 'journal';
 
 const $ = require("jquery");
 const cockpit = require("cockpit");
 const _ = cockpit.gettext;
 const moment = require("moment");
-const Journal = require("journal");
 const Player = require("./player.jsx");
 const Config = require("./config.jsx");
 
@@ -247,7 +247,7 @@ class Logs extends React.Component {
             }
 
             const self = this;
-            this.journalCtl = Journal.journalctl(matches, options)
+            this.journalCtl = journal.journalctl(matches, options)
                     .fail(this.journalctlError)
                     .done(function(data) {
                         self.journalctlIngest(data);
@@ -701,7 +701,7 @@ export default class View extends React.Component {
         }
 
         this.journalctlRecordingID = this.state.recordingID;
-        this.journalctl = Journal.journalctl(matches, options)
+        this.journalctl = journal.journalctl(matches, options)
                 .fail(this.journalctlError)
                 .stream(this.journalctlIngest);
     }

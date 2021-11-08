@@ -20,6 +20,7 @@
 
 import React from "react";
 import {
+    Breadcrumb, BreadcrumbItem,
     Bullseye,
     Button,
     Card,
@@ -34,6 +35,7 @@ import {
     EmptyStateIcon,
     EmptyStateVariant,
     ExpandableSection,
+    Page, PageSection, PageSectionVariants,
     Spinner,
     Title,
     TextInput,
@@ -50,7 +52,6 @@ import {
     TableBody
 } from "@patternfly/react-table";
 import {
-    AngleLeftIcon,
     CogIcon,
     ExclamationCircleIcon,
     ExclamationTriangleIcon,
@@ -394,30 +395,41 @@ class Recording extends React.Component {
             );
         } else {
             return (
-                <>
-                    <Button variant="link" icon={<AngleLeftIcon />} onClick={this.goBackToList}>
-                        {_("Session Recording")}
-                    </Button>
-                    <Player.Player
-                        ref="player"
-                        matchList={this.props.recording.matchList}
-                        logsTs={this.logsTs}
-                        search={this.props.search}
-                        onTsChange={this.handleTsChange}
-                        recording={r}
-                        logsEnabled={this.state.logsEnabled}
-                        onRewindStart={this.handleLogsReset} />
-                    <ExpandableSection
-                        id="btn-logs-view"
-                        toggleText={_("Logs View")}
-                        onToggle={this.handleLogsClick}
-                        isExpanded={this.state.logsEnabled === true}>
-                        <Logs
-                            recording={this.props.recording}
-                            curTs={this.state.curTs}
-                            jumpToTs={this.handleLogTsChange} />
-                    </ExpandableSection>
-                </>
+                <Page
+groupProps={{ sticky: 'top' }}
+                      isBreadcrumbGrouped
+                      breadcrumb={
+                          <Breadcrumb className='machines-listing-breadcrumb'>
+                              <BreadcrumbItem to='#' onClick={this.goBackToList}>
+                                  {_("Session Recording")}
+                              </BreadcrumbItem>
+                              <BreadcrumbItem isActive>
+                                  {_("Current recording")}
+                              </BreadcrumbItem>
+                          </Breadcrumb>
+                      }>
+                    <PageSection>
+                        <Player.Player
+                            ref="player"
+                            matchList={this.props.recording.matchList}
+                            logsTs={this.logsTs}
+                            search={this.props.search}
+                            onTsChange={this.handleTsChange}
+                            recording={r}
+                            logsEnabled={this.state.logsEnabled}
+                            onRewindStart={this.handleLogsReset} />
+                        <ExpandableSection
+                            id="btn-logs-view"
+                            toggleText={_("Logs View")}
+                            onToggle={this.handleLogsClick}
+                            isExpanded={this.state.logsEnabled === true}>
+                            <Logs
+                                recording={this.props.recording}
+                                curTs={this.state.curTs}
+                                jumpToTs={this.handleLogTsChange} />
+                        </ExpandableSection>
+                    </PageSection>
+                </Page>
             );
         }
     }
@@ -890,16 +902,18 @@ export default class View extends React.Component {
             );
 
             return (
-                <>
-                    <Toolbar>{toolbar}</Toolbar>
-                    <RecordingList
-                        date_since={this.state.date_since}
-                        date_until={this.state.date_until}
-                        username={this.state.username}
-                        hostname={this.state.hostname}
-                        list={this.state.recordingList}
-                        diff_hosts={this.state.diff_hosts} />
-                </>
+                <Page>
+                    <PageSection variant={PageSectionVariants.light}>
+                        <Toolbar>{toolbar}</Toolbar>
+                        <RecordingList
+                            date_since={this.state.date_since}
+                            date_until={this.state.date_until}
+                            username={this.state.username}
+                            hostname={this.state.hostname}
+                            list={this.state.recordingList}
+                            diff_hosts={this.state.diff_hosts} />
+                    </PageSection>
+                </Page>
             );
         } else {
             return (

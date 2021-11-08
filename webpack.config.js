@@ -14,7 +14,7 @@ const srcdir = (process.env.SRCDIR || __dirname) + path.sep + "src";
 const builddir = process.env.SRCDIR || __dirname;
 const distdir = builddir + path.sep + "dist";
 const section = process.env.ONLYDIR || null;
-const libdir = path.resolve(srcdir, "pkg" + path.sep + "lib")
+const libdir = path.resolve(srcdir, "lib")
 const nodedir = path.resolve(process.env.SRCDIR || __dirname, "node_modules");
 
 /* A standard nodejs and webpack pattern */

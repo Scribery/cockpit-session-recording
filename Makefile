@@ -67,7 +67,7 @@ dist/po.%.js: po/%.po $(NODE_MODULES_TEST)
 %.spec: %.spec.in
 	sed -e 's/%{VERSION}/$(VERSION)/g' $< > $@
 
-$(WEBPACK_TEST): $(NODE_MODULES_TEST) $(shell find src/ -type f) package.json webpack.config.js $(patsubst %,dist/po.%.js,$(LINGUAS))
+$(WEBPACK_TEST): $(LIB_TEST) $(NODE_MODULES_TEST) $(shell find src/ -type f) package.json webpack.config.js $(patsubst %,dist/po.%.js,$(LINGUAS))
 	NODE_ENV=$(NODE_ENV) npm run build
 
 watch:

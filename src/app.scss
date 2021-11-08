@@ -6,3 +6,11 @@ p {
 .ct-page-fill {
   height: 100% !important;
 }
+
+.config-container {
+    row-gap: var(--pf-global--spacer--sm);
+
+    > .pf-c-card {
+        min-width: 30rem;
+    }
+}

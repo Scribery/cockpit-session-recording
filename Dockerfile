@@ -1,4 +1,4 @@
-FROM fedora:32
+FROM fedora:35
 
 COPY . cockpit-session-recording
 
@@ -7,6 +7,7 @@ RUN sudo dnf -y install \
         gnupg \
         intltool \
         libappstream-glib \
+        python3 \
         make \
         npm \
         rpm-build \

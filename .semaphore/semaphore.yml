@@ -14,14 +14,14 @@ blocks:
           - sudo rm -rf /etc/localtime
           - sudo ln -s /usr/share/zoneinfo/America/New_York /etc/localtime
           - sudo apt install -y python3-libvirt
-          - docker build -t rpmbuilder .
-          - id=$(docker create rpmbuilder)
-          - docker cp $id:/cockpit-session-recording/ .
+          - podman build -t rpmbuilder .
+          - id=$(podman create rpmbuilder)
+          - podman cp $id:/cockpit-session-recording/ .
           - cd cockpit-session-recording
           - make test/common
           - make bots
       jobs:
-      - name: Check fedora-34
+      - name: Check fedora-35
         commands:
           - export TEST_OS=fedora-35
           - bots/image-customize -v -i cockpit-ws -i cockpit-packagekit -i `pwd`/cockpit-session-recording*.noarch.rpm -s `pwd`/test/vm.install $TEST_OS

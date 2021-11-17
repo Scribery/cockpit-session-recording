@@ -20,7 +20,9 @@
 
 import React from "react";
 import {
+    Breadcrumb, BreadcrumbItem,
     Button,
+    Flex,
     Form,
     FormGroup,
     FormSelect,
@@ -37,9 +39,10 @@ import {
     EmptyStateIcon,
     Title,
     EmptyStateBody,
-    EmptyStateVariant
+    EmptyStateVariant,
+    Page, PageSection,
 } from "@patternfly/react-core";
-import { AngleLeftIcon, ExclamationCircleIcon } from "@patternfly/react-icons";
+import { ExclamationCircleIcon } from "@patternfly/react-icons";
 import { global_danger_color_200 } from "@patternfly/react-tokens";
 
 const json = require('comment-json');
@@ -382,7 +385,7 @@ class GeneralConfig extends React.Component {
         return (
             <Card>
                 <CardTitle>General Config</CardTitle>
-                <CardBody style={{ maxWidth: "500px" }}>{form}</CardBody>
+                <CardBody>{form}</CardBody>
             </Card>
         );
     }
@@ -545,7 +548,7 @@ class SssdConfig extends React.Component {
         return (
             <Card>
                 <CardTitle>SSSD Config</CardTitle>
-                <CardBody style={{ maxWidth: "500px" }}>{form}</CardBody>
+                <CardBody>{form}</CardBody>
             </Card>
         );
     }
@@ -557,12 +560,25 @@ export function Config () {
     };
 
     return (
-        <>
-            <Button variant="link" icon={<AngleLeftIcon />} onClick={goBack}>
-                {_("Session Recording")}
-            </Button>
-            <GeneralConfig />
-            <SssdConfig />
-        </>
+        <Page
+groupProps={{ sticky: 'top' }}
+              isBreadcrumbGrouped
+              breadcrumb={
+                  <Breadcrumb className='machines-listing-breadcrumb'>
+                      <BreadcrumbItem to='#' onClick={goBack}>
+                          {_("Session Recording")}
+                      </BreadcrumbItem>
+                      <BreadcrumbItem isActive>
+                          {_("Settings")}
+                      </BreadcrumbItem>
+                  </Breadcrumb>
+              }>
+            <PageSection>
+                <Flex className="config-container">
+                    <GeneralConfig />
+                    <SssdConfig />
+                </Flex>
+            </PageSection>
+        </Page>
     );
 }

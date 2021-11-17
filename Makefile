@@ -5,13 +5,15 @@ ifeq ($(TEST_OS),)
 TEST_OS = rhel-x
 endif
 export TEST_OS
-TARFILE=cockpit-$(PACKAGE_NAME)-$(VERSION).tar.gz
+TARFILE=cockpit-$(PACKAGE_NAME)-$(VERSION).tar.xz
 RPMFILE=$(shell rpmspec -D"VERSION $(VERSION)" -q cockpit-session-recording.spec.in).rpm
 VM_IMAGE=$(CURDIR)/test/images/$(TEST_OS)
 # stamp file to check if/when npm install ran
 NODE_MODULES_TEST=package-lock.json
 # one example file in dist/ from webpack to check if that already ran
-WEBPACK_TEST=dist/index.html
+WEBPACK_TEST=dist/manifest.json
+# one example file in src/lib to check if it was already checked out
+LIB_TEST=src/lib/cockpit-po-plugin.js
 
 all: $(WEBPACK_TEST)
 
@@ -65,11 +67,11 @@ dist/po.%.js: po/%.po $(NODE_MODULES_TEST)
 %.spec: %.spec.in
 	sed -e 's/%{VERSION}/$(VERSION)/g' $< > $@
 
-$(WEBPACK_TEST): $(NODE_MODULES_TEST) $(shell find src/ -type f) package.json webpack.config.js $(patsubst %,dist/po.%.js,$(LINGUAS))
-	NODE_ENV=$(NODE_ENV) npm run build
+$(WEBPACK_TEST): $(NODE_MODULES_TEST) $(LIB_TEST) $(shell find src/ -type f) package.json webpack.config.js $(patsubst %,dist/po.%.js,$(LINGUAS))
+	NODE_ENV=$(NODE_ENV) node_modules/.bin/webpack
 
 watch:
-	NODE_ENV=$(NODE_ENV) npm run watch
+	NODE_ENV=$(NODE_ENV) node_modules/.bin/webpack --watch
 
 clean:
 	rm -rf dist/
@@ -86,22 +88,20 @@ devel-install: $(WEBPACK_TEST)
 	mkdir -p ~/.local/share/cockpit
 	ln -s `pwd`/dist ~/.local/share/cockpit/$(PACKAGE_NAME)
 
-dist-gzip: $(TARFILE)
+dist: $(TARFILE)
 
 # when building a distribution tarball, call webpack with a 'production' environment
 # we don't ship node_modules for license and compactness reasons; we ship a
 # pre-built dist/ (so it's not necessary) and ship packge-lock.json (so that
 # node_modules/ can be reconstructed if necessary)
-$(TARFILE): NODE_ENV=production
+$(TARFILE): export NODE_ENV=production
 $(TARFILE): $(WEBPACK_TEST) cockpit-$(PACKAGE_NAME).spec
 	if type appstream-util >/dev/null 2>&1; then appstream-util validate-relax --nonet *.metainfo.xml; fi
-	mv node_modules node_modules.release
 	touch -r package.json $(NODE_MODULES_TEST)
 	touch dist/*
-	tar czf cockpit-$(PACKAGE_NAME)-$(VERSION).tar.gz --transform 's,^,cockpit-$(PACKAGE_NAME)/,' \
-		--exclude cockpit-$(PACKAGE_NAME).spec.in \
-		$$(git ls-files) package-lock.json cockpit-$(PACKAGE_NAME).spec dist/
-	mv node_modules.release node_modules
+	tar --xz -cf cockpit-$(PACKAGE_NAME)-$(VERSION).tar.xz --transform 's,^,cockpit-$(PACKAGE_NAME)/,' \
+		--exclude cockpit-$(PACKAGE_NAME).spec.in --exclude node_modules \
+		$$(git ls-files) src/lib package-lock.json cockpit-$(PACKAGE_NAME).spec dist/
 
 srpm: $(TARFILE) cockpit-$(PACKAGE_NAME).spec
 	rpmbuild -bs \
@@ -160,6 +160,12 @@ test/common:
 	git checkout --force FETCH_HEAD -- test/common
 	git reset test/common
 
+# checkout Cockpit's PF/React/build library; again this has no API stability guarantee, so check out a stable tag
+$(LIB_TEST):
+	git clone -b 256 --depth=1 https://github.com/cockpit-project/cockpit.git tmp/cockpit
+	mv tmp/cockpit/pkg/lib src/
+	rm -rf tmp/cockpit
+
 $(NODE_MODULES_TEST): package.json
 	# if it exists already, npm install won't update it; force that so that we always get up-to-date packages
 	rm -f package-lock.json
@@ -167,4 +173,4 @@ $(NODE_MODULES_TEST): package.json
 	env -u NODE_ENV npm install
 	env -u NODE_ENV npm prune
 
-.PHONY: all clean install devel-install dist-gzip srpm rpm check vm update-po
+.PHONY: all clean install devel-install dist srpm rpm check vm update-po

@@ -285,7 +285,9 @@ class Logs extends React.Component {
     }
 
     componentWillUnmount() {
-        this.journalCtl.stop();
+        if (this.journalCtl) {
+            this.journalCtl.stop();
+        }
         this.setState({
             serverTimeOffset: null,
             cursor: null,

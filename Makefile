@@ -11,7 +11,7 @@ VM_IMAGE=$(CURDIR)/test/images/$(TEST_OS)
 # stamp file to check if/when npm install ran
 NODE_MODULES_TEST=package-lock.json
 # one example file in dist/ from webpack to check if that already ran
-WEBPACK_TEST=dist/index.html
+WEBPACK_TEST=dist/manifest.json
 # one example file in src/lib to check if it was already checked out
 LIB_TEST=src/lib/cockpit-po-plugin.js
 
@@ -67,11 +67,11 @@ dist/po.%.js: po/%.po $(NODE_MODULES_TEST)
 %.spec: %.spec.in
 	sed -e 's/%{VERSION}/$(VERSION)/g' $< > $@
 
-$(WEBPACK_TEST): $(LIB_TEST) $(NODE_MODULES_TEST) $(shell find src/ -type f) package.json webpack.config.js $(patsubst %,dist/po.%.js,$(LINGUAS))
-	NODE_ENV=$(NODE_ENV) npm run build
+$(WEBPACK_TEST): $(NODE_MODULES_TEST) $(LIB_TEST) $(shell find src/ -type f) package.json webpack.config.js $(patsubst %,dist/po.%.js,$(LINGUAS))
+	NODE_ENV=$(NODE_ENV) node_modules/.bin/webpack
 
 watch:
-	NODE_ENV=$(NODE_ENV) npm run watch
+	NODE_ENV=$(NODE_ENV) node_modules/.bin/webpack --watch
 
 clean:
 	rm -rf dist/
@@ -94,16 +94,14 @@ dist: $(TARFILE)
 # we don't ship node_modules for license and compactness reasons; we ship a
 # pre-built dist/ (so it's not necessary) and ship packge-lock.json (so that
 # node_modules/ can be reconstructed if necessary)
-$(TARFILE): NODE_ENV=production
+$(TARFILE): export NODE_ENV=production
 $(TARFILE): $(WEBPACK_TEST) cockpit-$(PACKAGE_NAME).spec
 	if type appstream-util >/dev/null 2>&1; then appstream-util validate-relax --nonet *.metainfo.xml; fi
-	mv node_modules node_modules.release
 	touch -r package.json $(NODE_MODULES_TEST)
 	touch dist/*
 	tar --xz -cf cockpit-$(PACKAGE_NAME)-$(VERSION).tar.xz --transform 's,^,cockpit-$(PACKAGE_NAME)/,' \
-		--exclude cockpit-$(PACKAGE_NAME).spec.in \
-		$$(git ls-files) package-lock.json cockpit-$(PACKAGE_NAME).spec dist/
-	mv node_modules.release node_modules
+		--exclude cockpit-$(PACKAGE_NAME).spec.in --exclude node_modules \
+		$$(git ls-files) src/lib package-lock.json cockpit-$(PACKAGE_NAME).spec dist/
 
 srpm: $(TARFILE) cockpit-$(PACKAGE_NAME).spec
 	rpmbuild -bs \

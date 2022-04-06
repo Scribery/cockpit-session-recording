@@ -397,6 +397,7 @@ class SssdConfig extends React.Component {
         this.handleSubmit = this.handleSubmit.bind(this);
         this.setConfig = this.setConfig.bind(this);
         this.confSave = this.confSave.bind(this);
+        this.restartSSSD = this.restartSSSD.bind(this);
         this.file = null;
         this.state = {
             scope: "",
@@ -408,26 +409,34 @@ class SssdConfig extends React.Component {
         };
     }
 
+    restartSSSD() {
+        let sssd_cmd = ["systemctl", "restart", "sssd"];
+        cockpit.spawn(sssd_cmd, { superuser: "require" });
+        this.setState({ submitting: false });
+    }
+
     confSave(obj) {
+        let chmod_cmd = ["chmod", "600", "/etc/sssd/conf.d/sssd-session-recording.conf"];
+        /* Update nsswitch, this will fail on RHEL8/F34 and lower as 'with-files-domain' feature is not added there */
+        let authselect_cmd = ["authselect", "select", "sssd", "with-files-domain", "--force"];
         this.setState({ submitting: true });
         this.file.replace(obj).done(() => {
-            cockpit.spawn(
-                ["chmod", "600", "/etc/sssd/conf.d/sssd-session-recording.conf"],
-                { superuser: "require" }).done(() => {
-                cockpit.spawn(
-                    ["systemctl", "restart", "sssd"],
-                    { superuser: "require" }).done(() => {
-                    this.setState({ submitting: false });
-                })
-                        .fail((data) => console.log(data));
-            })
-                    .fail((data) => console.log(data));
+            cockpit.spawn(chmod_cmd, { superuser: "require" })
+                    .then(() => {
+                        cockpit.spawn(authselect_cmd, { superuser: "require" })
+                                .then(this.restartSSSD)
+                                .catch(this.restartSSSD);
+                    });
         });
     }
 
     setConfig(data) {
         if (data === null) {
             const obj = {};
+            /* Always enable files domain */
+            obj.sssd = {};
+            obj.sssd.enable_files_domain = "true";
+            obj.sssd.services = "nss";
             obj.session_recording = {};
             obj.session_recording.scope = "none";
             this.confSave(obj);
@@ -459,6 +468,9 @@ class SssdConfig extends React.Component {
 
     handleSubmit(e) {
         const obj = {};
+        obj.sssd = {};
+        obj.sssd.enable_files_domain = "true";
+        obj.sssd.services = "nss";
         obj.session_recording = {};
         obj.session_recording.scope = this.state.scope;
         switch (this.state.scope) {

@@ -14,6 +14,7 @@ blocks:
           - sudo rm -rf /etc/localtime
           - sudo ln -s /usr/share/zoneinfo/America/New_York /etc/localtime
           - sudo apt install -y python3-libvirt
+          - sudo apt-get update -y
           - docker build -t rpmbuilder .
           - id=$(docker create rpmbuilder)
           - docker cp $id:/cockpit-session-recording/ .

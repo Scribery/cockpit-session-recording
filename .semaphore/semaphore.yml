@@ -14,6 +14,7 @@ blocks:
           - sudo rm -rf /etc/localtime
           - sudo ln -s /usr/share/zoneinfo/America/New_York /etc/localtime
           - sudo apt install -y python3-libvirt
+          - sudo apt-get update -y
           - docker build -t rpmbuilder .
           - id=$(docker create rpmbuilder)
           - docker cp $id:/cockpit-session-recording/ .
@@ -24,7 +25,7 @@ blocks:
       - name: Check fedora-34
         commands:
           - export TEST_OS=fedora-35
-          - bots/image-customize -v -i cockpit-ws -i cockpit-packagekit -i `pwd`/cockpit-session-recording*.noarch.rpm -s `pwd`/test/vm.install $TEST_OS
+          - bots/image-customize -v -i cockpit-ws -i python3* -i cockpit-packagekit -i `pwd`/cockpit-session-recording*.noarch.rpm -s `pwd`/test/vm.install $TEST_OS
           - bots/image-customize -v -r "usermod -u 981 tlog || true" $TEST_OS
           - bots/image-customize -v -u ./test/files/1.journal:/var/log/journal/1.journal $TEST_OS
           - bots/image-customize -v -u ./test/files/binary-rec.journal:/var/log/journal/binary-rec.journal $TEST_OS
@@ -32,7 +33,7 @@ blocks:
       - name: Check centos-8
         commands:
           - export TEST_OS=centos-8-stream
-          - bots/image-customize -v -i cockpit-ws -i cockpit-packagekit -i `pwd`/cockpit-session-recording*.noarch.rpm -s `pwd`/test/vm.install $TEST_OS
+          - bots/image-customize -v -i cockpit-ws -i python3* -i cockpit-packagekit -i `pwd`/cockpit-session-recording*.noarch.rpm -s `pwd`/test/vm.install $TEST_OS
           - bots/image-customize -v -r "usermod -u 981 tlog || true" $TEST_OS
           - bots/image-customize -v -u ./test/files/1.journal:/var/log/journal/1.journal $TEST_OS
           - bots/image-customize -v -u ./test/files/binary-rec.journal:/var/log/journal/binary-rec.journal $TEST_OS

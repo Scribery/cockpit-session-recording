@@ -164,7 +164,7 @@ class TestApplication(MachineCase):
         b.click("#player-play-pause")
         time.sleep(10)
         # Make sure it didn't keep playing
-        b.wait_not_in_text(self._term_line(1), "whoami")
+        b.wait_not_in_text(self._term_line(6), "thisisatest123")
         # Test if it can start playing again
         b.click("#player-play-pause")
 

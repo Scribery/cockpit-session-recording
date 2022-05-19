@@ -59,7 +59,6 @@ import { journal } from 'journal';
 
 const cockpit = require("cockpit");
 const _ = cockpit.gettext;
-const moment = require("moment");
 const $ = require("jquery");
 
 const padInt = function (n, w) {
@@ -72,8 +71,22 @@ const padInt = function (n, w) {
     return ((i < 0) ? '-' : '') + s;
 };
 
+/*
+ * Format date and time for a number of milliseconds since Epoch.
+ * YYYY-MM-DD HH:mm:ss
+ */
 const formatDateTime = function (ms) {
-    return moment(ms).format("YYYY-MM-DD HH:mm:ss");
+    /* Convert local timezone offset */
+    let t = new Date(ms);
+    let z = t.getTimezoneOffset() * 60 * 1000;
+    let tLocal = t - z;
+    tLocal = new Date(tLocal);
+    let iso = tLocal.toISOString();
+
+    /* cleanup ISO format */
+    iso = iso.slice(0, 19);
+    iso = iso.replace('T', ' ');
+    return iso;
 };
 
 /*

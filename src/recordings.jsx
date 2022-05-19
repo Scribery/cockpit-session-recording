@@ -65,7 +65,6 @@ import { journal } from 'journal';
 const $ = require("jquery");
 const cockpit = require("cockpit");
 const _ = cockpit.gettext;
-const moment = require("moment");
 const Player = require("./player.jsx");
 const Config = require("./config.jsx");
 
@@ -85,14 +84,33 @@ const padInt = function (n, w) {
 
 /*
  * Format date and time for a number of milliseconds since Epoch.
+ * YYYY-MM-DD HH:mm:ss
  */
 const formatDateTime = function (ms) {
-    return moment(ms).format("YYYY-MM-DD HH:mm:ss");
+    /* Convert local timezone offset */
+    let t = new Date(ms);
+    let z = t.getTimezoneOffset() * 60 * 1000;
+    let tLocal = t - z;
+    tLocal = new Date(tLocal);
+    let iso = tLocal.toISOString();
+
+    /* cleanup ISO format */
+    iso = iso.slice(0, 19);
+    iso = iso.replace('T', ' ');
+    return iso;
 };
 
 const formatUTC = function(date) {
-    return moment(date).utc()
-            .format("YYYY-MM-DD HH:mm:ss") + " UTC";
+    let iso = null;
+    try {
+        iso = new Date(date).toISOString();
+        iso = iso.slice(0, 19);
+        iso = iso.replace('T', ' ') + " UTC";
+    } catch (error) {
+        iso = "";
+    }
+
+    return iso;
 };
 
 /*

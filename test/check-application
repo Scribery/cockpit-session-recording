@@ -15,7 +15,7 @@ sys.path.append(os.path.join(TEST_DIR, "common"))
 sys.path.append(os.path.join(os.path.dirname(TEST_DIR), "bots/machine"))
 from testlib import *
 
-# Test with pre-recorded journal with tlog UID 981
+# Test with pre-recorded journal files
 class TestApplication(MachineCase):
     def _login(self, loc="/session-recording", wait="#app"):
         self.login_and_go(loc)

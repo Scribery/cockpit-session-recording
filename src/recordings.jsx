@@ -561,8 +561,6 @@ export default class View extends React.Component {
         this.journalctlRecordingID = null;
         /* Recording ID -> data map */
         this.recordingMap = {};
-        /* tlog UID in system set in ComponentDidMount */
-        this.uid = null;
         const path = cockpit.location.path[0];
         this.state = {
             /* List of recordings in start order */
@@ -576,7 +574,7 @@ export default class View extends React.Component {
             hostname: cockpit.location.options.hostname || "",
             search: cockpit.location.options.search || "",
             /* filter values end */
-            error_tlog_uid: false,
+            error_tlog_user: false,
             diff_hosts: false,
             /* if config is open */
             config: path === "config",
@@ -794,13 +792,12 @@ export default class View extends React.Component {
         const proc = cockpit.spawn(["getent", "passwd", "tlog"]);
 
         proc.stream((data) => {
-            this.uid = data.split(":", 3)[2];
             this.journalctlStart();
             proc.close();
         });
 
         proc.fail(() => {
-            this.setState({ error_tlog_uid: true });
+            this.setState({ error_tlog_user: true });
         });
 
         cockpit.addEventListener("locationchanged",
@@ -838,7 +835,7 @@ export default class View extends React.Component {
     render() {
         if (this.state.config === true) {
             return <Config.Config />;
-        } else if (this.state.error_tlog_uid === true) {
+        } else if (this.state.error_tlog_user === true) {
             return (
                 <Bullseye>
                     <EmptyState variant={EmptyStateVariant.small}>
@@ -849,7 +846,7 @@ export default class View extends React.Component {
                             {_("Error")}
                         </Title>
                         <EmptyStateBody>
-                            {_("Unable to retrieve tlog UID from system.")}
+                            {_("Unable to retrieve tlog user from system.")}
                         </EmptyStateBody>
                     </EmptyState>
                 </Bullseye>

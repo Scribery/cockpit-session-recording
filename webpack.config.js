@@ -40,6 +40,12 @@ var output = {
     sourceMapFilename: "[file].map",
 };
 
+// Non-JS files which are copied verbatim to dist/
+const copy_files = [
+    "./src/index.html",
+    "./src/manifest.json",
+];
+
 /*
  * Note that we're avoiding the use of path.join as webpack and nodejs
  * want relative paths that start with ./ explicitly.
@@ -77,8 +83,9 @@ info.files.forEach(function (value) {
 });
 info.files = files;
 
-var plugins = [
-    new copy(info.files), new extract({ filename: "[name].css" }),
+const plugins = [
+    new copy({ patterns: copy_files }),
+    new extract({filename: "[name].css"}),
     new ESLintPlugin({ extensions: ["js", "jsx"], exclude: ["spec", "node_modules", "src/lib"] }),
 ];
 
@@ -162,10 +169,12 @@ module.exports = {
                         },
                     },
                     {
-                        loader: "sass-loader",
+                        loader: 'sass-loader',
                         options: {
-                            sourceMap: true,
-                            outputStyle: "compressed",
+                            sourceMap: !production,
+                            sassOptions: {
+                                outputStyle: production ? 'compressed' : undefined,
+                            },
                         },
                     },
                 ],
@@ -183,10 +192,12 @@ module.exports = {
                         },
                     },
                     {
-                        loader: "sass-loader",
+                        loader: 'sass-loader',
                         options: {
-                            sourceMap: true,
-                            outputStyle: "compressed",
+                            sourceMap: !production,
+                            sassOptions: {
+                                outputStyle: production ? 'compressed' : undefined,
+                            },
                         },
                     },
                 ],

@@ -395,7 +395,6 @@ class SssdConfig extends React.Component {
     constructor(props) {
         super(props);
         this.handleSubmit = this.handleSubmit.bind(this);
-        this.setConfig = this.setConfig.bind(this);
         this.confSave = this.confSave.bind(this);
         this.restartSSSD = this.restartSSSD.bind(this);
         this.file = null;
@@ -407,6 +406,10 @@ class SssdConfig extends React.Component {
             groups: "",
             submitting: false,
         };
+    }
+
+    customIniUnparser(obj) {
+        return ini.stringify(obj).replace('domainnssfiles', 'domain/nssfiles');
     }
 
     restartSSSD() {
@@ -430,26 +433,10 @@ class SssdConfig extends React.Component {
         });
     }
 
-    setConfig(data) {
-        if (data === null) {
-            const obj = {};
-            /* Always enable files domain */
-            obj.sssd = {};
-            obj.sssd.enable_files_domain = "true";
-            obj.sssd.services = "nss";
-            obj.session_recording = {};
-            obj.session_recording.scope = "none";
-            this.confSave(obj);
-        } else {
-            const config = { ...data.session_recording };
-            this.setState(config);
-        }
-    }
-
     componentDidMount() {
         const syntax_object = {
             parse:     ini.parse,
-            stringify: ini.stringify
+            stringify: this.customIniUnparser,
         };
 
         this.file = cockpit.file("/etc/sssd/conf.d/sssd-session-recording.conf", {
@@ -459,8 +446,6 @@ class SssdConfig extends React.Component {
 
         const promise = this.file.read();
 
-        promise.done(() => this.file.watch(this.setConfig));
-
         promise.fail(function(error) {
             console.log(error);
         });
@@ -468,9 +453,17 @@ class SssdConfig extends React.Component {
 
     handleSubmit(e) {
         const obj = {};
+        /* SSSD section */
         obj.sssd = {};
         obj.sssd.enable_files_domain = "true";
         obj.sssd.services = "nss";
+        obj.sssd.domains = "nssfiles";
+        /* Proxy provider */
+        obj.domainnssfiles = {}; /* Unparser converts this into domain/nssfiles */
+        obj.domainnssfiles.id_provider = "proxy";
+        obj.domainnssfiles.proxy_lib_name = "files";
+        obj.domainnssfiles.proxy_pam_target = "sssd-shadowutils";
+        /* Session recording */
         obj.session_recording = {};
         obj.session_recording.scope = this.state.scope;
         switch (this.state.scope) {

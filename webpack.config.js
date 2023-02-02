@@ -91,17 +91,11 @@ const plugins = [
 
 /* Only minimize when in production mode */
 if (production) {
-    /* Rename output files when minimizing */
-    output.filename = "[name].min.js";
-
     plugins.unshift(
         new CompressionPlugin({
-            asset: "[path].gz[query]",
-            test: /\.(js|html)$/,
-            minRatio: 0.9,
+            test: /\.(css|js|html)$/,
             deleteOriginalAssets: true,
-        })
-    );
+    }));
 }
 
 var babel_loader = {

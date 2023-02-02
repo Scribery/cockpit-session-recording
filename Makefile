@@ -136,7 +136,7 @@ $(RPMFILE): $(TARFILE) cockpit-$(PACKAGE_NAME).spec
 # build a VM with locally built rpm installed
 $(VM_IMAGE): $(RPMFILE) bots
 	rm -f $(VM_IMAGE) $(VM_IMAGE).qcow2
-	bots/image-customize -v -i cockpit-ws -i cockpit-packagekit -i `pwd`/$(RPMFILE) -s $(CURDIR)/test/vm.install $(TEST_OS)
+	bots/image-customize -v -i `pwd`/$(RPMFILE) -s $(CURDIR)/test/vm.install $(TEST_OS)
 	bots/image-customize -v -u ./test/files/1.journal:/var/log/journal/1.journal $(TEST_OS)
 	bots/image-customize -v -u ./test/files/binary-rec.journal:/var/log/journal/binary-rec.journal $(TEST_OS)
 

@@ -1,12 +1,17 @@
 # extract name from package.json
 PACKAGE_NAME := $(shell awk '/"name":/ {gsub(/[",]/, "", $$2); print $$2}' package.json)
+RPM_NAME := cockpit-$(PACKAGE_NAME)
 VERSION := $(shell T=$$(git describe 2>/dev/null) || T=1; echo $$T | tr '-' '.')
 ifeq ($(TEST_OS),)
 TEST_OS = rhel-x
 endif
 export TEST_OS
 TARFILE=cockpit-$(PACKAGE_NAME)-$(VERSION).tar.xz
-RPMFILE=$(shell rpmspec -D"VERSION $(VERSION)" -q cockpit-session-recording.spec.in).rpm
+SPEC=$(RPM_NAME).spec
+# rpmspec -q behaves differently in Fedora ≥ 37
+RPMQUERY=$(shell rpmspec -D"VERSION $(VERSION)" -q --srpm $(SPEC).in).rpm
+SRPMFILE=$(subst noarch,src,$(RPMQUERY))
+RPMFILE=$(subst src,noarch,$(RPMQUERY))
 VM_IMAGE=$(CURDIR)/test/images/$(TEST_OS)
 # stamp file to check if/when npm install ran
 NODE_MODULES_TEST=package-lock.json

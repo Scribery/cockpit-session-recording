@@ -623,7 +623,7 @@ const PacketBuffer = class {
 
 function SearchEntry(props) {
     return (
-        <span className="search-result"><a onClick={(e) => props.fastForwardToTS(props.pos, e)}>{formatDuration(props.pos)}</a></span>
+        <span className="search-result"><a href="#search-result" onClick={(e) => props.fastForwardToTS(props.pos, e)}>{formatDuration(props.pos)}</a></span>
     );
 }
 

@@ -67,16 +67,16 @@
 
 .search-wrap {
     min-height: 25px;
-    display:block;
-    clear:both;
+    display: block;
+    clear: both;
 }
 
 .session_time {
-    margin-right:5px;
+    margin-right: 5px;
 }
 
-.pf-c-progress__indicator:after {
-    content: "";  
+.pf-c-progress__indicator::after {
+    content: "";
     position: relative;
     width: 20px;
     height: 20px;

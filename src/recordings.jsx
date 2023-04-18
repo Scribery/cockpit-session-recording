@@ -16,8 +16,6 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with Cockpit; If not, see <http://www.gnu.org/licenses/>.
  */
-"use strict";
-
 import React from "react";
 import {
     Breadcrumb, BreadcrumbItem,
@@ -58,12 +56,12 @@ import {
     PlusIcon,
     SearchIcon
 } from "@patternfly/react-icons";
+import cockpit from 'cockpit';
 import { global_danger_color_200 } from "@patternfly/react-tokens";
 import { debounce } from 'throttle-debounce';
 import { journal } from 'journal';
 
 const $ = require("jquery");
-const cockpit = require("cockpit");
 const _ = cockpit.gettext;
 const Player = require("./player.jsx");
 const Config = require("./config.jsx");
@@ -88,8 +86,8 @@ const padInt = function (n, w) {
  */
 const formatDateTime = function (ms) {
     /* Convert local timezone offset */
-    let t = new Date(ms);
-    let z = t.getTimezoneOffset() * 60 * 1000;
+    const t = new Date(ms);
+    const z = t.getTimezoneOffset() * 60 * 1000;
     let tLocal = t - z;
     tLocal = new Date(tLocal);
     let iso = tLocal.toISOString();
@@ -148,9 +146,9 @@ function LogElement(props) {
     const timeClick = function(_e) {
         const ts = entry_timestamp - start;
         if (ts > 0) {
-            props.jumpToTs(ts);
+            props.onJumpToTs(ts);
         } else {
-            props.jumpToTs(0);
+            props.onJumpToTs(0);
         }
     };
     const messageClick = () => {
@@ -159,18 +157,21 @@ function LogElement(props) {
         win.focus();
     };
 
-    const cells = <DataListItemCells
-                        dataListCells={[
-                            <DataListCell key="row">
-                                <ExclamationTriangleIcon />
-                                <Button variant="link" onClick={timeClick}>
-                                    {formatDateTime(entry_timestamp)}
-                                </Button>
-                                <Card isSelectable onClick={messageClick}>
-                                    <CardBody>{entry.MESSAGE}</CardBody>
-                                </Card>
-                            </DataListCell>
-                        ]} />;
+    const cells = (
+        <DataListItemCells
+            dataListCells={[
+                <DataListCell key="row">
+                    <ExclamationTriangleIcon />
+                    <Button variant="link" onClick={timeClick}>
+                        {formatDateTime(entry_timestamp)}
+                    </Button>
+                    <Card isSelectable onClick={messageClick}>
+                        <CardBody>{entry.MESSAGE}</CardBody>
+                    </Card>
+                </DataListCell>
+            ]}
+        />
+    );
 
     return (
         <DataListItem>
@@ -187,7 +188,8 @@ function LogsView(props) {
             entry={entry}
             start={start}
             end={end}
-            jumpToTs={props.jumpToTs} />
+            onJumpToTs={props.onJumpToTs}
+        />
     );
     return (
         <DataList>{rows}</DataList>
@@ -201,7 +203,7 @@ class Logs extends React.Component {
         this.journalctlIngest = this.journalctlIngest.bind(this);
         this.journalctlPrepend = this.journalctlPrepend.bind(this);
         this.getLogs = this.getLogs.bind(this);
-        this.loadLater = this.loadLater.bind(this);
+        this.handleLoadLater = this.handleLoadLater.bind(this);
         this.loadForTs = this.loadForTs.bind(this);
         this.journalCtl = null;
         this.entries = [];
@@ -224,7 +226,7 @@ class Logs extends React.Component {
         if (entryList.length > 0) {
             this.entries.push(...entryList);
             const after = this.entries[this.entries.length - 1].__CURSOR;
-            this.setState({ entries: this.entries, after: after });
+            this.setState({ entries: this.entries, after });
         }
     }
 
@@ -274,7 +276,7 @@ class Logs extends React.Component {
         }
     }
 
-    loadLater() {
+    handleLoadLater() {
         this.start = this.end;
         this.end = this.end + 3600;
         this.getLogs();
@@ -335,12 +337,14 @@ class Logs extends React.Component {
                         entries={this.state.entries}
                         start={this.props.recording.start}
                         end={this.props.recording.end}
-                        jumpToTs={this.props.jumpToTs} />
+                        onJumpToTs={this.props.onJumpToTs}
+                    />
                     <Bullseye>
                         <Button
                             variant="secondary"
                             icon={<PlusIcon />}
-                            onClick={this.loadLater}>
+                            onClick={this.handleLoadLater}
+                        >
                             {_("Load later entries")}
                         </Button>
                     </Bullseye>
@@ -359,11 +363,12 @@ class Logs extends React.Component {
 class Recording extends React.Component {
     constructor(props) {
         super(props);
-        this.goBackToList = this.goBackToList.bind(this);
+        this.handleGoBackToList = this.handleGoBackToList.bind(this);
         this.handleTsChange = this.handleTsChange.bind(this);
         this.handleLogTsChange = this.handleLogTsChange.bind(this);
         this.handleLogsClick = this.handleLogsClick.bind(this);
         this.handleLogsReset = this.handleLogsReset.bind(this);
+        this.playerRef = React.createRef();
         this.state = {
             curTs: null,
             logsTs: null,
@@ -389,7 +394,7 @@ class Recording extends React.Component {
         });
     }
 
-    goBackToList() {
+    handleGoBackToList() {
         if (cockpit.location.path[0]) {
             if ("search_rec" in cockpit.location.options) {
                 delete cockpit.location.options.search_rec;
@@ -420,33 +425,37 @@ groupProps={{ sticky: 'top' }}
                       isBreadcrumbGrouped
                       breadcrumb={
                           <Breadcrumb className='machines-listing-breadcrumb'>
-                              <BreadcrumbItem to='#' onClick={this.goBackToList}>
+                              <BreadcrumbItem to='#' onClick={this.handleGoBackToList}>
                                   {_("Session Recording")}
                               </BreadcrumbItem>
                               <BreadcrumbItem isActive>
                                   {_("Current recording")}
                               </BreadcrumbItem>
                           </Breadcrumb>
-                      }>
+                      }
+                >
                     <PageSection>
                         <Player.Player
-                            ref="player"
+                            ref={this.playerRef}
                             matchList={this.props.recording.matchList}
                             logsTs={this.logsTs}
                             search={this.props.search}
                             onTsChange={this.handleTsChange}
                             recording={r}
                             logsEnabled={this.state.logsEnabled}
-                            onRewindStart={this.handleLogsReset} />
+                            onRewindStart={this.handleLogsReset}
+                        />
                         <ExpandableSection
                             id="btn-logs-view"
                             toggleText={_("Logs View")}
                             onToggle={this.handleLogsClick}
-                            isExpanded={this.state.logsEnabled === true}>
+                            isExpanded={this.state.logsEnabled === true}
+                        >
                             <Logs
                                 recording={this.props.recording}
                                 curTs={this.state.curTs}
-                                jumpToTs={this.handleLogTsChange} />
+                                onJumpToTs={this.handleLogTsChange}
+                            />
                         </ExpandableSection>
                     </PageSection>
                 </Page>
@@ -463,9 +472,8 @@ groupProps={{ sticky: 'top' }}
 class RecordingList extends React.Component {
     constructor(props) {
         super(props);
-
-        this.onSort = this.onSort.bind(this);
-        this.rowClickHandler = this.rowClickHandler.bind(this);
+        this.handleOnSort = this.handleOnSort.bind(this);
+        this.handleRowClick = this.handleRowClick.bind(this);
         this.state = {
             sortBy: {
                 index: 1,
@@ -474,7 +482,7 @@ class RecordingList extends React.Component {
         };
     }
 
-    onSort(_event, index, direction) {
+    handleOnSort(_event, index, direction) {
         this.setState({
             sortBy: {
                 index,
@@ -483,7 +491,7 @@ class RecordingList extends React.Component {
         });
     }
 
-    rowClickHandler(_event, row) {
+    handleRowClick(_event, row) {
         cockpit.location.go([row.id], cockpit.location.options);
     }
 
@@ -492,7 +500,7 @@ class RecordingList extends React.Component {
         const { index, direction } = sortBy;
 
         // generate columns
-        let titles = ["User", "Start", "End", "Duration"];
+        const titles = ["User", "Start", "End", "Duration"];
         if (this.props.diff_hosts === true)
             titles.push("Hostname");
         const columnTitles = titles.map(title => ({
@@ -502,7 +510,7 @@ class RecordingList extends React.Component {
 
         // sort rows
         let rows = this.props.list.map(rec => {
-            let cells = [
+            const cells = [
                 rec.user,
                 formatDateTime(rec.start),
                 formatDateTime(rec.end),
@@ -512,7 +520,7 @@ class RecordingList extends React.Component {
                 cells.push(rec.hostname);
             return {
                 id: rec.id,
-                cells: cells
+                cells,
             };
         }).sort((a, b) => a.cells[index].localeCompare(b.cells[index]));
         rows = direction === SortByDirection.asc ? rows : rows.reverse();
@@ -524,9 +532,10 @@ class RecordingList extends React.Component {
                     cells={columnTitles}
                     rows={rows}
                     sortBy={sortBy}
-                    onSort={this.onSort}>
+                    onSort={this.handleOnSort}
+                >
                     <TableHeader />
-                    <TableBody onRowClick={this.rowClickHandler} />
+                    <TableBody onRowClick={this.handleRowClick} />
                 </Table>
                 {!rows.length &&
                     <EmptyState variant={EmptyStateVariant.small}>
@@ -554,7 +563,7 @@ export default class View extends React.Component {
         this.onLocationChanged = this.onLocationChanged.bind(this);
         this.journalctlIngest = this.journalctlIngest.bind(this);
         this.handleInputChange = this.handleInputChange.bind(this);
-        this.openConfig = this.openConfig.bind(this);
+        this.handleOpenConfig = this.handleOpenConfig.bind(this);
         /* Journalctl instance */
         this.journalctl = null;
         /* Recording ID journalctl instance is invoked with */
@@ -645,7 +654,7 @@ export default class View extends React.Component {
                 }
 
                 r = {
-                    id:            id,
+                    id,
                     matchList:     ["TLOG_REC=" + id],
                     user:          e.TLOG_USER,
                     boot_id:       e._BOOT_ID,
@@ -675,7 +684,7 @@ export default class View extends React.Component {
                     r.duration = r.end - r.start;
                     /* Find the recording in the list */
                     for (j = recordingList.length - 1;
-                        j >= 0 && recordingList[j] != r;
+                        j >= 0 && recordingList[j] !== r;
                         j--);
                     /* If found */
                     if (j >= 0) {
@@ -691,7 +700,7 @@ export default class View extends React.Component {
             }
         }
 
-        this.setState({ recordingList: recordingList });
+        this.setState({ recordingList });
     }
 
     /*
@@ -784,7 +793,7 @@ export default class View extends React.Component {
         cockpit.location.go([], $.extend(cockpit.location.options, state));
     }
 
-    openConfig() {
+    handleOpenConfig() {
         cockpit.location.go("/config");
     }
 
@@ -841,7 +850,8 @@ export default class View extends React.Component {
                     <EmptyState variant={EmptyStateVariant.small}>
                         <EmptyStateIcon
                             icon={ExclamationCircleIcon}
-                            color={global_danger_color_200.value} />
+                            color={global_danger_color_200.value}
+                        />
                         <Title headingLevel="h2" size="lg">
                             {_("Error")}
                         </Title>
@@ -862,7 +872,8 @@ export default class View extends React.Component {
                                 placeholder={_("Filter since")}
                                 value={this.state.date_since}
                                 type="search"
-                                onChange={value => this.handleInputChange("date_since", value)} />
+                                onChange={value => this.handleInputChange("date_since", value)}
+                            />
                         </ToolbarItem>
                     </ToolbarGroup>
                     <ToolbarGroup>
@@ -873,7 +884,8 @@ export default class View extends React.Component {
                                 placeholder={_("Filter until")}
                                 value={this.state.date_until}
                                 type="search"
-                                onChange={value => this.handleInputChange("date_until", value)} />
+                                onChange={value => this.handleInputChange("date_until", value)}
+                            />
                         </ToolbarItem>
                     </ToolbarGroup>
                     <ToolbarGroup>
@@ -884,7 +896,8 @@ export default class View extends React.Component {
                                 placeholder={_("Filter by content")}
                                 value={this.state.search}
                                 type="search"
-                                onChange={value => this.handleInputChange("search", value)} />
+                                onChange={value => this.handleInputChange("search", value)}
+                            />
                         </ToolbarItem>
                     </ToolbarGroup>
                     <ToolbarGroup>
@@ -895,7 +908,8 @@ export default class View extends React.Component {
                                 placeholder={_("Filter by username")}
                                 value={this.state.username}
                                 type="search"
-                                onChange={value => this.handleInputChange("username", value)} />
+                                onChange={value => this.handleInputChange("username", value)}
+                            />
                         </ToolbarItem>
                     </ToolbarGroup>
                     {this.state.diff_hosts === true &&
@@ -907,11 +921,12 @@ export default class View extends React.Component {
                                 placeholder={_("Filter by hostname")}
                                 value={this.state.hostname}
                                 type="search"
-                                onChange={value => this.handleInputChange("hostname", value)} />
+                                onChange={value => this.handleInputChange("hostname", value)}
+                            />
                         </ToolbarItem>
                     </ToolbarGroup>}
                     <ToolbarItem>
-                        <Button id="btn-config" onClick={this.openConfig}>
+                        <Button id="btn-config" onClick={this.handleOpenConfig}>
                             <CogIcon />
                         </Button>
                     </ToolbarItem>
@@ -928,7 +943,8 @@ export default class View extends React.Component {
                             username={this.state.username}
                             hostname={this.state.hostname}
                             list={this.state.recordingList}
-                            diff_hosts={this.state.diff_hosts} />
+                            diff_hosts={this.state.diff_hosts}
+                        />
                     </PageSection>
                 </Page>
             );
@@ -936,7 +952,8 @@ export default class View extends React.Component {
             return (
                 <Recording
                     recording={this.recordingMap[this.state.recordingID]}
-                    search={this.state.search} />
+                    search={this.state.search}
+                />
             );
         }
     }

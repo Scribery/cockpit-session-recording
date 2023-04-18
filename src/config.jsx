@@ -16,7 +16,6 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with Cockpit; If not, see <http://www.gnu.org/licenses/>.
  */
-"use strict";
 
 import React from "react";
 import {
@@ -44,10 +43,10 @@ import {
 } from "@patternfly/react-core";
 import { ExclamationCircleIcon } from "@patternfly/react-icons";
 import { global_danger_color_200 } from "@patternfly/react-tokens";
+import cockpit from 'cockpit';
 
 const json = require('comment-json');
 const ini = require('ini');
-const cockpit = require('cockpit');
 const _ = cockpit.gettext;
 
 class GeneralConfig extends React.Component {
@@ -124,15 +123,15 @@ class GeneralConfig extends React.Component {
     setConfig(data) {
         delete data.configuration;
         delete data.args;
-        var flattenObject = function(ob) {
-            var toReturn = {};
+        const flattenObject = function(ob) {
+            const toReturn = {};
 
-            for (var i in ob) {
+            for (const i in ob) {
                 if (!Object.prototype.hasOwnProperty.call(ob, i)) continue;
 
                 if ((typeof ob[i]) == 'object') {
-                    var flatObject = flattenObject(ob[i]);
-                    for (var x in flatObject) {
+                    const flatObject = flattenObject(ob[i]);
+                    for (const x in flatObject) {
                         if (!Object.prototype.hasOwnProperty.call(flatObject, x)) continue;
 
                         toReturn[i + '_' + x] = flatObject[x];
@@ -203,13 +202,15 @@ class GeneralConfig extends React.Component {
                                 <TextInput
                                     id="shell"
                                     value={this.state.shell}
-                                    onChange={shell => this.setState({ shell })} />
+                                    onChange={shell => this.setState({ shell })}
+                                />
                             </FormGroup>
                             <FormGroup label={_("Notice")}>
                                 <TextInput
                                     id="notice"
                                     value={this.state.notice}
-                                    onChange={notice => this.setState({ notice })} />
+                                    onChange={notice => this.setState({ notice })}
+                                />
                             </FormGroup>
                             <FormGroup label={_("Latency")}>
                                 <TextInput
@@ -217,7 +218,8 @@ class GeneralConfig extends React.Component {
                                     type="number"
                                     step="1"
                                     value={this.state.latency}
-                                    onChange={latency => this.setState({ latency })} />
+                                    onChange={latency => this.setState({ latency })}
+                                />
                             </FormGroup>
                             <FormGroup label={_("Payload Size, bytes")}>
                                 <TextInput
@@ -225,24 +227,28 @@ class GeneralConfig extends React.Component {
                                     type="number"
                                     step="1"
                                     value={this.state.payload}
-                                    onChange={payload => this.setState({ payload })} />
+                                    onChange={payload => this.setState({ payload })}
+                                />
                             </FormGroup>
                             <FormGroup label={_("Logging")}>
                                 <Checkbox
                                     id="log_input"
                                     isChecked={this.state.log_input}
                                     onChange={log_input => this.setState({ log_input })}
-                                    label={_("User's Input")} />
+                                    label={_("User's Input")}
+                                />
                                 <Checkbox
                                     id="log_output"
                                     isChecked={this.state.log_output}
                                     onChange={log_output => this.setState({ log_output })}
-                                    label={_("User's Output")} />
+                                    label={_("User's Output")}
+                                />
                                 <Checkbox
                                     id="log_window"
                                     isChecked={this.state.log_window}
                                     onChange={log_window => this.setState({ log_window })}
-                                    label={_("Window Resize")} />
+                                    label={_("Window Resize")}
+                                />
                             </FormGroup>
                             <FormGroup label={_("Limit Rate, bytes/sec")}>
                                 <TextInput
@@ -250,7 +256,8 @@ class GeneralConfig extends React.Component {
                                     type="number"
                                     step="1"
                                     value={this.state.limit_rate}
-                                    onChange={limit_rate => this.setState({ limit_rate })} />
+                                    onChange={limit_rate => this.setState({ limit_rate })}
+                                />
                             </FormGroup>
                             <FormGroup label={_("Burst, bytes")}>
                                 <TextInput
@@ -258,13 +265,15 @@ class GeneralConfig extends React.Component {
                                     type="number"
                                     step="1"
                                     value={this.state.limit_burst}
-                                    onChange={limit_burst => this.setState({ limit_burst })} />
+                                    onChange={limit_burst => this.setState({ limit_burst })}
+                                />
                             </FormGroup>
                             <FormGroup label={_("Logging Limit Action")}>
                                 <FormSelect
                                     id="limit_action"
                                     value={this.state.limit_action}
-                                    onChange={limit_action => this.setState({ limit_action })}>
+                                    onChange={limit_action => this.setState({ limit_action })}
+                                >
                                     {[
                                         { value: "", label: "" },
                                         { value: "pass", label: _("Pass") },
@@ -274,7 +283,8 @@ class GeneralConfig extends React.Component {
                                         <FormSelectOption
                                         key={index}
                                         value={option.value}
-                                        label={option.label} />
+                                        label={option.label}
+                                        />
                                     )}
                                 </FormSelect>
                             </FormGroup>
@@ -282,21 +292,24 @@ class GeneralConfig extends React.Component {
                                 <TextInput
                                     id="file_path"
                                     value={this.state.file_path}
-                                    onChange={file_path => this.setState({ file_path })} />
+                                    onChange={file_path => this.setState({ file_path })}
+                                />
                             </FormGroup>
                             <FormGroup label={_("Syslog Facility")}>
                                 <TextInput
                                     id="syslog_facility"
                                     value={this.state.syslog_facility}
                                     onChange={syslog_facility =>
-                                        this.setState({ syslog_facility })} />
+                                        this.setState({ syslog_facility })}
+                                />
                             </FormGroup>
                             <FormGroup label={_("Syslog Priority")}>
                                 <FormSelect
                                     id="syslog_priority"
                                     value={this.state.syslog_priority}
                                     onChange={syslog_priority =>
-                                        this.setState({ syslog_priority })}>
+                                        this.setState({ syslog_priority })}
+                                >
                                     {[
                                         { value: "", label: "" },
                                         { value: "info", label: _("Info") },
@@ -304,7 +317,8 @@ class GeneralConfig extends React.Component {
                                         <FormSelectOption
                                         key={index}
                                         value={option.value}
-                                        label={option.label} />
+                                        label={option.label}
+                                        />
                                     )}
                                 </FormSelect>
                             </FormGroup>
@@ -313,7 +327,8 @@ class GeneralConfig extends React.Component {
                                     id="journal_priority"
                                     value={this.state.journal_priority}
                                     onChange={journal_priority =>
-                                        this.setState({ journal_priority })}>
+                                        this.setState({ journal_priority })}
+                                >
                                     {[
                                         { value: "", label: "" },
                                         { value: "info", label: _("Info") },
@@ -321,7 +336,8 @@ class GeneralConfig extends React.Component {
                                         <FormSelectOption
                                         key={index}
                                         value={option.value}
-                                        label={option.label} />
+                                        label={option.label}
+                                        />
                                     )}
                                 </FormSelect>
                             </FormGroup>
@@ -331,14 +347,16 @@ class GeneralConfig extends React.Component {
                                     isChecked={this.state.journal_augment}
                                     onChange={journal_augment =>
                                         this.setState({ journal_augment })}
-                                    label={_("Augment")} />
+                                    label={_("Augment")}
+                                />
                             </FormGroup>
                             <FormGroup label={_("Writer")}>
                                 <FormSelect
                                     id="writer"
                                     value={this.state.writer}
                                     onChange={writer =>
-                                        this.setState({ writer })}>
+                                        this.setState({ writer })}
+                                >
                                     {[
                                         { value: "", label: "" },
                                         { value: "journal", label: _("Journal") },
@@ -348,7 +366,8 @@ class GeneralConfig extends React.Component {
                                         <FormSelectOption
                                         key={index}
                                         value={option.value}
-                                        label={option.label} />
+                                        label={option.label}
+                                        />
                                     )}
                                 </FormSelect>
                             </FormGroup>
@@ -356,7 +375,8 @@ class GeneralConfig extends React.Component {
                                 <Button
                                     id="btn-save-tlog-conf"
                                     variant="primary"
-                                    onClick={this.handleSubmit}>
+                                    onClick={this.handleSubmit}
+                                >
                                     {_("Save")}
                                 </Button>
                                 {this.state.submitting === true && <Spinner size="lg" />}
@@ -368,7 +388,8 @@ class GeneralConfig extends React.Component {
                             <EmptyState variant={EmptyStateVariant.small}>
                                 <EmptyStateIcon
                                 icon={ExclamationCircleIcon}
-                                color={global_danger_color_200.value} />
+                                color={global_danger_color_200.value}
+                                />
                                 <Title headingLevel="h4" size="lg">
                                     {_("There is no configuration file of tlog present in your system.")}
                                 </Title>
@@ -413,15 +434,15 @@ class SssdConfig extends React.Component {
     }
 
     restartSSSD() {
-        let sssd_cmd = ["systemctl", "restart", "sssd"];
+        const sssd_cmd = ["systemctl", "restart", "sssd"];
         cockpit.spawn(sssd_cmd, { superuser: "require" });
         this.setState({ submitting: false });
     }
 
     confSave(obj) {
-        let chmod_cmd = ["chmod", "600", "/etc/sssd/conf.d/sssd-session-recording.conf"];
+        const chmod_cmd = ["chmod", "600", "/etc/sssd/conf.d/sssd-session-recording.conf"];
         /* Update nsswitch, this will fail on RHEL8/F34 and lower as 'with-files-domain' feature is not added there */
-        let authselect_cmd = ["authselect", "select", "sssd", "with-files-domain", "--force"];
+        const authselect_cmd = ["authselect", "select", "sssd", "with-files-domain", "--force"];
         this.setState({ submitting: true });
         this.file.replace(obj).done(() => {
             cockpit.spawn(chmod_cmd, { superuser: "require" })
@@ -491,7 +512,8 @@ class SssdConfig extends React.Component {
                     <FormSelect
                         id="scope"
                         value={this.state.scope}
-                        onChange={scope => this.setState({ scope })}>
+                        onChange={scope => this.setState({ scope })}
+                    >
                         {[
                             { value: "none", label: _("None") },
                             { value: "some", label: _("Some") },
@@ -500,7 +522,8 @@ class SssdConfig extends React.Component {
                             <FormSelectOption
                                 key={index}
                                 value={option.value}
-                                label={option.label} />
+                                label={option.label}
+                            />
                         )}
                     </FormSelect>
                 </FormGroup>
@@ -542,7 +565,8 @@ class SssdConfig extends React.Component {
                     <Button
                         id="btn-save-sssd-conf"
                         variant="primary"
-                        onClick={this.handleSubmit}>
+                        onClick={this.handleSubmit}
+                    >
                         {_("Save")}
                     </Button>
                     {this.state.submitting === true && <Spinner size="lg" />}
@@ -577,7 +601,8 @@ groupProps={{ sticky: 'top' }}
                           {_("Settings")}
                       </BreadcrumbItem>
                   </Breadcrumb>
-              }>
+              }
+        >
             <PageSection>
                 <Flex className="config-container">
                     <GeneralConfig />

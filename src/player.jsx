@@ -16,7 +16,6 @@
 * You should have received a copy of the GNU Lesser General Public License
 * along with Cockpit; If not, see <http://www.gnu.org/licenses/>.
 */
-"use strict";
 import React from 'react';
 import './player.css';
 import { Terminal as Term } from 'xterm';
@@ -55,9 +54,9 @@ import {
     MigrationIcon,
 } from '@patternfly/react-icons';
 
+import cockpit from 'cockpit';
 import { journal } from 'journal';
 
-const cockpit = require("cockpit");
 const _ = cockpit.gettext;
 const $ = require("jquery");
 
@@ -77,8 +76,8 @@ const padInt = function (n, w) {
  */
 const formatDateTime = function (ms) {
     /* Convert local timezone offset */
-    let t = new Date(ms);
-    let z = t.getTimezoneOffset() * 60 * 1000;
+    const t = new Date(ms);
+    const z = t.getTimezoneOffset() * 60 * 1000;
     let tLocal = t - z;
     tLocal = new Date(tLocal);
     let iso = tLocal.toISOString();
@@ -243,11 +242,10 @@ const PacketBuffer = class {
      * Get an object field, verifying its presence and type.
      */
     getValidField(object, field, type) {
-        let value;
         if (!(field in object)) {
             this.reportError("\"" + field + "\" field is missing");
         }
-        value = object[field];
+        const value = object[field];
         if (typeof (value) != typeof (type)) {
             this.reportError("invalid \"" + field + "\" field type: " + typeof (value));
         }
@@ -294,7 +292,7 @@ const PacketBuffer = class {
         /* Try to find an existing, matching tuple */
         for (i = 0; i < this.idxDfdList.length; i++) {
             idxDfd = this.idxDfdList[i];
-            if (idxDfd[0] == idx) {
+            if (idxDfd[0] === idx) {
                 return idxDfd[1].promise();
             } else if (idxDfd[0] > idx) {
                 break;
@@ -394,7 +392,7 @@ const PacketBuffer = class {
             matches = this.timingRE.exec(timing);
             if (matches === null) {
                 this.reportError(_("invalid timing string"));
-            } else if (matches[0] == "") {
+            } else if (matches[0] === "") {
                 break;
             }
 
@@ -403,14 +401,14 @@ const PacketBuffer = class {
             /* Delay */
             case "+":
                 x = parseInt(matches[1], 10);
-                if (x == 0) {
+                if (x === 0) {
                     break;
                 }
                 if (io.length > 0) {
                     this.addPacket({
                         pos: this.pos,
                         is_io: true,
-                        is_output: is_output,
+                        is_output,
                         io: io.join()
                     });
                     io = [];
@@ -420,15 +418,15 @@ const PacketBuffer = class {
                 /* Text or binary input */
             case "<":
             case "[":
-                x = parseInt(matches[(t == "<") ? 2 : 3], 10);
-                if (x == 0) {
+                x = parseInt(matches[(t === "<") ? 2 : 3], 10);
+                if (x === 0) {
                     break;
                 }
                 if (io.length > 0 && is_output) {
                     this.addPacket({
                         pos: this.pos,
                         is_io: true,
-                        is_output: is_output,
+                        is_output,
                         io: io.join()
                     });
                     io = [];
@@ -436,7 +434,7 @@ const PacketBuffer = class {
                 is_output = false;
                 /* Add (replacement) input characters */
                 s = in_txt.slice(in_txt_pos, in_txt_pos += x);
-                if (s.length != x) {
+                if (s.length !== x) {
                     this.reportError(_("timing entry out of input bounds"));
                 }
                 io.push(s);
@@ -444,15 +442,15 @@ const PacketBuffer = class {
                 /* Text or binary output */
             case ">":
             case "]":
-                x = parseInt(matches[(t == ">") ? 5 : 6], 10);
-                if (x == 0) {
+                x = parseInt(matches[(t === ">") ? 5 : 6], 10);
+                if (x === 0) {
                     break;
                 }
                 if (io.length > 0 && !is_output) {
                     this.addPacket({
                         pos: this.pos,
                         is_io: true,
-                        is_output: is_output,
+                        is_output,
                         io: io.join()
                     });
                     io = [];
@@ -460,7 +458,7 @@ const PacketBuffer = class {
                 is_output = true;
                 /* Add (replacement) output characters */
                 s = out_txt.slice(out_txt_pos, out_txt_pos += x);
-                if (s.length != x) {
+                if (s.length !== x) {
                     this.reportError(_("timing entry out of output bounds"));
                 }
                 io.push(s);
@@ -469,14 +467,14 @@ const PacketBuffer = class {
             case "=":
                 x = parseInt(matches[8], 10);
                 y = parseInt(matches[9], 10);
-                if (x == this.width && y == this.height) {
+                if (x === this.width && y === this.height) {
                     break;
                 }
                 if (io.length > 0) {
                     this.addPacket({
                         pos: this.pos,
                         is_io: true,
-                        is_output: is_output,
+                        is_output,
                         io: io.join()
                     });
                     io = [];
@@ -489,6 +487,9 @@ const PacketBuffer = class {
                 });
                 this.width = x;
                 this.height = y;
+                break;
+            default:
+                // continue
                 break;
             }
         }
@@ -504,7 +505,7 @@ const PacketBuffer = class {
             this.addPacket({
                 pos: this.pos,
                 is_io: true,
-                is_output: is_output,
+                is_output,
                 io: io.join()
             });
         }
@@ -514,17 +515,12 @@ const PacketBuffer = class {
      * Parse packets out of a tlog message and add them to the buffer.
      */
     parseMessage(message) {
-        let matches;
-        let ver;
-        let id;
-        let pos;
-
         const number = Number();
         const string = String();
 
         /* Check version */
-        ver = this.getValidField(message, "ver", string);
-        matches = ver.match("^(\\d+)\\.(\\d+)$");
+        const ver = this.getValidField(message, "ver", string);
+        const matches = ver.match("^(\\d+)\\.(\\d+)$");
         if (matches === null || matches[1] > 2) {
             this.reportError("\"ver\" field has invalid value: " + ver);
         }
@@ -532,13 +528,13 @@ const PacketBuffer = class {
         /* TODO Perhaps check host, rec, user, term, and session fields */
 
         /* Extract message ID */
-        id = this.getValidField(message, "id", number);
+        const id = this.getValidField(message, "id", number);
         if (id <= this.id) {
             this.reportError("out of order \"id\" field value: " + id);
         }
 
         /* Extract message time position */
-        pos = this.getValidField(message, "pos", number);
+        const pos = this.getValidField(message, "pos", number);
         if (pos < this.message_pos) {
             this.reportError("out of order \"pos\" field value: " + pos);
         }
@@ -612,8 +608,7 @@ const PacketBuffer = class {
         this.journalctl = journal.journalctl(
             this.matchList,
             {
-                cursor: this.cursor,
-                follow: true, merge: true, count: "all"
+                cursor: this.cursor, follow: true, merge: true, count: "all"
             });
         this.journalctl.fail(this.handleError);
         this.journalctl.stream(this.handleStream);
@@ -634,14 +629,14 @@ class Search extends React.Component {
         this.handleStream = this.handleStream.bind(this);
         this.handleError = this.handleError.bind(this);
         this.handleSearchSubmit = this.handleSearchSubmit.bind(this);
-        this.clearSearchResults = this.clearSearchResults.bind(this);
+        this.handleClearSearchResults = this.handleClearSearchResults.bind(this);
+
         this.state = {
             search: cockpit.location.options.search_rec || cockpit.location.options.search || "",
         };
     }
 
     handleInputChange(name, value) {
-        event.preventDefault();
         const state = {};
         state[name] = value;
         this.setState(state);
@@ -669,14 +664,14 @@ class Search extends React.Component {
                 />
             );
         });
-        this.setState({ items: items });
+        this.setState({ items });
     }
 
     handleError(data) {
         this.props.errorService.addMessage(data);
     }
 
-    clearSearchResults() {
+    handleClearSearchResults() {
         delete cockpit.location.options.search;
         cockpit.location.go(cockpit.location.path[0], cockpit.location.options);
         this.setState({ search: "" });
@@ -697,15 +692,18 @@ class Search extends React.Component {
                         id="search_rec"
                         type="search"
                         value={this.state.search}
-                        onChange={value => this.handleInputChange("search", value)} />
+                        onChange={value => this.handleInputChange("search", value)}
+                    />
                     <Button
                         variant="control"
-                        onClick={this.handleSearchSubmit}>
+                        onClick={this.handleSearchSubmit}
+                    >
                         <SearchIcon />
                     </Button>
                     <Button
                         variant="control"
-                        onClick={this.clearSearchResults}>
+                        onClick={this.handleClearSearchResults}
+                    >
                         <MinusIcon />
                     </Button>
                 </InputGroup>
@@ -734,21 +732,21 @@ export class Player extends React.Component {
         this.handlePacket = this.handlePacket.bind(this);
         this.handleError = this.handleError.bind(this);
         this.handleTitleChange = this.handleTitleChange.bind(this);
-        this.rewindToStart = this.rewindToStart.bind(this);
-        this.playPauseToggle = this.playPauseToggle.bind(this);
+        this.handleRewindToStart = this.handleRewindToStart.bind(this);
+        this.handlePlayPauseToggle = this.handlePlayPauseToggle.bind(this);
         this.play = this.play.bind(this);
         this.pause = this.pause.bind(this);
-        this.speedUp = this.speedUp.bind(this);
-        this.speedDown = this.speedDown.bind(this);
-        this.speedReset = this.speedReset.bind(this);
-        this.fastForwardToEnd = this.fastForwardToEnd.bind(this);
-        this.skipFrame = this.skipFrame.bind(this);
+        this.handleSpeedUp = this.handleSpeedUp.bind(this);
+        this.handleSpeedDown = this.handleSpeedDown.bind(this);
+        this.handleSpeedReset = this.handleSpeedReset.bind(this);
+        this.handleFastForwardToEnd = this.handleFastForwardToEnd.bind(this);
+        this.handleSkipFrame = this.handleSkipFrame.bind(this);
         this.handleKeyDown = this.handleKeyDown.bind(this);
         this.sync = this.sync.bind(this);
-        this.zoomIn = this.zoomIn.bind(this);
-        this.zoomOut = this.zoomOut.bind(this);
-        this.fitTo = this.fitTo.bind(this);
-        this.dragPan = this.dragPan.bind(this);
+        this.handleZoomIn = this.handleZoomIn.bind(this);
+        this.handleZoomOut = this.handleZoomOut.bind(this);
+        this.handleFitTo = this.handleFitTo.bind(this);
+        this.handleDragPan = this.handleDragPan.bind(this);
         this.dragPanEnable = this.dragPanEnable.bind(this);
         this.dragPanDisable = this.dragPanDisable.bind(this);
         this.zoom = this.zoom.bind(this);
@@ -756,6 +754,8 @@ export class Player extends React.Component {
         this.sendInput = this.sendInput.bind(this);
         this.clearInputPlayer = this.clearInputPlayer.bind(this);
         this.handleInfoClick = this.handleInfoClick.bind(this);
+        this.wrapperRef = React.createRef();
+        this.termRef = React.createRef();
         this.handleProgressClick = this.handleProgressClick.bind(this);
 
         this.state = {
@@ -792,6 +792,10 @@ export class Player extends React.Component {
         };
 
         this.containerHeight = 400;
+
+        this.setScrollwrapRef = element => {
+            this.scrollwrapRef = element;
+        };
 
         /* Auto-loading buffer of recording's packets */
         this.error_service = new ErrorService();
@@ -891,7 +895,7 @@ export class Player extends React.Component {
     }
 
     _transform(width, height) {
-        var relation = Math.min(
+        const relation = Math.min(
             this.state.containerWidth / this.state.term.element.offsetWidth,
             this.containerHeight / this.state.term.element.offsetHeight
         );
@@ -1008,7 +1012,7 @@ export class Player extends React.Component {
         }
     }
 
-    playPauseToggle() {
+    handlePlayPauseToggle() {
         this.setState({ paused: !this.state.paused });
     }
 
@@ -1020,21 +1024,21 @@ export class Player extends React.Component {
         this.setState({ paused: true });
     }
 
-    speedUp() {
+    handleSpeedUp() {
         const speedExp = this.state.speedExp;
         if (speedExp < 4) {
             this.setState({ speedExp: speedExp + 1 });
         }
     }
 
-    speedDown() {
+    handleSpeedDown() {
         const speedExp = this.state.speedExp;
         if (speedExp > -4) {
             this.setState({ speedExp: speedExp - 1 });
         }
     }
 
-    speedReset() {
+    handleSpeedReset() {
         this.setState({ speedExp: 0 });
     }
 
@@ -1042,7 +1046,7 @@ export class Player extends React.Component {
         this.setState({ input: "" });
     }
 
-    rewindToStart() {
+    handleRewindToStart() {
         this.clearInputPlayer();
         this.reset();
         this.sync();
@@ -1051,7 +1055,7 @@ export class Player extends React.Component {
         }
     }
 
-    fastForwardToEnd() {
+    handleFastForwardToEnd() {
         this.fastForwardTo = Infinity;
         this.sync();
     }
@@ -1064,23 +1068,23 @@ export class Player extends React.Component {
         this.sync();
     }
 
-    skipFrame() {
+    handleSkipFrame() {
         this.skip = true;
         this.sync();
     }
 
     handleKeyDown(event) {
         const keyCodesFuncs = {
-            P: this.playPauseToggle,
-            "}": this.speedUp,
-            "{": this.speedDown,
-            Backspace: this.speedReset,
-            ".": this.skipFrame,
-            G: this.fastForwardToEnd,
-            R: this.rewindToStart,
-            "+": this.zoomIn,
-            "=": this.zoomIn,
-            "-": this.zoomOut,
+            P: this.handlePlayPauseToggle,
+            "}": this.handleSpeedUp,
+            "{": this.handleSpeedDown,
+            Backspace: this.handleSpeedReset,
+            ".": this.handleSkipFrame,
+            G: this.handleFastForwardToEnd,
+            R: this.handleRewindToStart,
+            "+": this.handleZoomIn,
+            "=": this.handleZoomIn,
+            "-": this.handleZoomOut,
             Z: this.fitIn,
         };
         if (event.target.nodeName.toLowerCase() !== 'input') {
@@ -1092,7 +1096,7 @@ export class Player extends React.Component {
 
     zoom(scale) {
         if (scale.toFixed(6) === this.state.scale_initial.toFixed(6)) {
-            this.fitTo();
+            this.handleFitTo();
         } else {
             this.setState({
                 term_top_style: "0",
@@ -1100,27 +1104,27 @@ export class Player extends React.Component {
                 term_translate: "0, 0",
                 scale_lock: true,
                 term_scroll: "auto",
-                scale: scale,
+                scale,
                 term_zoom_max: false,
                 term_zoom_min: false,
             });
         }
     }
 
-    dragPan() {
+    handleDragPan() {
         (this.state.drag_pan ? this.dragPanDisable() : this.dragPanEnable());
     }
 
     dragPanEnable() {
         this.setState({ drag_pan: true });
 
-        const scrollwrap = this.refs.scrollwrap;
+        const scrollwrap = this.scrollwrapRef;
 
         let clicked = false;
         let clickX;
         let clickY;
 
-        $(this.refs.scrollwrap).on({
+        $(this.scrollwrapRef).on({
             mousemove: function(e) {
                 clicked && updateScrollPos(e);
             },
@@ -1144,13 +1148,13 @@ export class Player extends React.Component {
 
     dragPanDisable() {
         this.setState({ drag_pan: false });
-        const scrollwrap = this.refs.scrollwrap;
+        const scrollwrap = this.scrollwrapRef;
         $(scrollwrap).off("mousemove");
         $(scrollwrap).off("mousedown");
         $(scrollwrap).off("mouseup");
     }
 
-    zoomIn() {
+    handleZoomIn() {
         let scale = this.state.scale;
         if (scale < 2.1) {
             scale = scale + 0.1;
@@ -1160,7 +1164,7 @@ export class Player extends React.Component {
         }
     }
 
-    zoomOut() {
+    handleZoomOut() {
         let scale = this.state.scale;
         if (scale >= 0.2) {
             scale = scale - 0.1;
@@ -1170,7 +1174,7 @@ export class Player extends React.Component {
         }
     }
 
-    fitTo() {
+    handleFitTo() {
         this.setState({
             term_top_style: "50%",
             term_left_style: "50%",
@@ -1182,15 +1186,17 @@ export class Player extends React.Component {
     }
 
     componentDidMount() {
-        this.state.term.on('title', this.handleTitleChange);
+        this.state.term.onData((data) => {
+            this.handleTitleChange();
+        });
 
         window.addEventListener("keydown", this.handleKeyDown, false);
 
-        if (this.refs.wrapper.offsetWidth) {
-            this.setState({ containerWidth: this.refs.wrapper.offsetWidth });
+        if (this.wrapperRef.offsetWidth) {
+            this.setState({ containerWidth: this.wrapperRef.offsetWidth });
         }
         /* Open the terminal */
-        this.state.term.open(this.refs.term);
+        this.state.term.open(this.termRef.current);
         window.setInterval(this.sync, 100);
         /* Reset playback */
         this.reset();
@@ -1199,15 +1205,15 @@ export class Player extends React.Component {
 
     componentDidUpdate(prevProps, prevState) {
         /* If we changed pause state or speed exponent */
-        if (this.state.paused != prevState.paused ||
-            this.state.speedExp != prevState.speedExp) {
+        if (this.state.paused !== prevState.paused ||
+            this.state.speedExp !== prevState.speedExp) {
             this.speed = Math.pow(2, this.state.speedExp);
             this.sync();
         }
-        if (this.state.input != prevState.input) {
+        if (this.state.input !== prevState.input) {
             scrollToBottom("input-textarea");
         }
-        if (prevProps.logsTs != this.props.logsTs) {
+        if (prevProps.logsTs !== this.props.logsTs) {
             this.fastForwardToTS(this.props.logsTs);
         }
     }
@@ -1266,7 +1272,8 @@ export class Player extends React.Component {
                 valueText={timeStr}
                 label={timeStr}
                 value={this.state.curTS}
-                onClick={this.handleProgressClick} />
+                onClick={this.handleProgressClick}
+            />
         );
 
         const playbackControls = (
@@ -1277,7 +1284,7 @@ export class Player extends React.Component {
                     id="player-play-pause"
                     title="Play/Pause - Hotkey: p"
                     type="button"
-                    onClick={this.playPauseToggle}
+                    onClick={this.handlePlayPauseToggle}
                     >
                         {this.state.paused ? <PlayIcon /> : <PauseIcon />}
                     </Button>
@@ -1288,7 +1295,7 @@ export class Player extends React.Component {
                     id="player-skip-frame"
                     title="Skip Frame - Hotkey: ."
                     type="button"
-                    onClick={this.skipFrame}
+                    onClick={this.handleSkipFrame}
                     >
                         <ArrowRightIcon />
                     </Button>
@@ -1299,7 +1306,7 @@ export class Player extends React.Component {
                     id="player-restart"
                     title="Restart Playback - Hotkey: Shift-R"
                     type="button"
-                    onClick={this.rewindToStart}
+                    onClick={this.handleRewindToStart}
                     >
                         <UndoIcon />
                     </Button>
@@ -1310,7 +1317,7 @@ export class Player extends React.Component {
                     id="player-fast-forward"
                     title="Fast-forward to end - Hotkey: Shift-G"
                     type="button"
-                    onClick={this.fastForwardToEnd}
+                    onClick={this.handleFastForwardToEnd}
                     >
                         <RedoIcon />
                     </Button>
@@ -1321,7 +1328,7 @@ export class Player extends React.Component {
                     id="player-speed-down"
                     title="Speed /2 - Hotkey: {"
                     type="button"
-                    onClick={this.speedDown}
+                    onClick={this.handleSpeedDown}
                     >
                         /2
                     </Button>
@@ -1332,7 +1339,7 @@ export class Player extends React.Component {
                     id="player-speed-up"
                     title="Speed x2 - Hotkey: }"
                     type="button"
-                    onClick={this.speedUp}
+                    onClick={this.handleSpeedUp}
                     >
                         x2
                     </Button>
@@ -1340,7 +1347,7 @@ export class Player extends React.Component {
                 {speedStr !== "" &&
                 <ToolbarItem>
                     <ChipGroup categoryName="speed">
-                        <Chip onClick={this.speedReset}>
+                        <Chip onClick={this.handleSpeedReset}>
                             <span id="player-speed">{speedStr}</span>
                         </Chip>
                     </ChipGroup>
@@ -1355,7 +1362,7 @@ export class Player extends React.Component {
                     variant="plain"
                     id="player-drag-pan"
                     title="Drag'n'Pan"
-                    onClick={this.dragPan}
+                    onClick={this.handleDragPan}
                     >
                         {this.state.drag_pan ? <ThumbtackIcon /> : <MigrationIcon />}
                     </Button>
@@ -1366,7 +1373,7 @@ export class Player extends React.Component {
                     id="player-zoom-in"
                     title="Zoom In - Hotkey: ="
                     type="button"
-                    onClick={this.zoomIn}
+                    onClick={this.handleZoomIn}
                     disabled={this.state.term_zoom_max}
                     >
                         <SearchPlusIcon />
@@ -1378,7 +1385,7 @@ export class Player extends React.Component {
                     id="player-fit-to"
                     title="Fit To - Hotkey: Z"
                     type="button"
-                    onClick={this.fitTo}
+                    onClick={this.handleFitTo}
                     >
                         <ExpandIcon />
                     </Button>
@@ -1389,7 +1396,7 @@ export class Player extends React.Component {
                     id="player-zoom-out"
                     title="Zoom Out - Hotkey: -"
                     type="button"
-                    onClick={this.zoomOut}
+                    onClick={this.handleZoomOut}
                     disabled={this.state.term_zoom_min}
                     >
                         <SearchMinusIcon />
@@ -1410,7 +1417,8 @@ export class Player extends React.Component {
                             play={this.play}
                             pause={this.pause}
                             paused={this.state.paused}
-                            errorService={this.error_service} />
+                            errorService={this.error_service}
+                    />
                     <ErrorList list={this.error_service.errors} />
                 </ToolbarContent>
             </Toolbar>
@@ -1436,7 +1444,8 @@ export class Player extends React.Component {
                                     dataListCells={[
                                         <DataListCell key="name">{item.name}</DataListCell>,
                                         <DataListCell key="value">{item.value}</DataListCell>
-                                    ]} />
+                                    ]}
+                                />
                             </DataListItemRow>
                         </DataListItem>
                     )
@@ -1449,7 +1458,8 @@ export class Player extends React.Component {
                 id="btn-recording-info"
                 toggleText={_("Recording Info")}
                 onToggle={this.handleInfoClick}
-                isExpanded={this.state.infoEnabled === true}>
+                isExpanded={this.state.infoEnabled === true}
+            >
                 {recordingInfo}
             </ExpandableSection>
         );
@@ -1457,7 +1467,7 @@ export class Player extends React.Component {
         // ensure react never reuses this div by keying it with the terminal widget
         return (
             <>
-                <div ref="wrapper" className="panel panel-default">
+                <div ref={this.wrapperRef} className="panel panel-default">
                     <div className="panel-heading">
                         <span>{this.state.title}</span>
                     </div>
@@ -1465,12 +1475,14 @@ export class Player extends React.Component {
                         <div
                             className={(this.state.drag_pan ? "dragnpan" : "")}
                             style={scrollwrap}
-                            ref="scrollwrap">
+                            ref={this.setScrollwrapRef}
+                        >
                             <div
-                                ref="term"
+                                ref={this.termRef}
                                 className="console-ct"
                                 key={this.state.term}
-                                style={style} />
+                                style={style}
+                            />
                         </div>
                     </div>
                     {progress}
@@ -1484,6 +1496,6 @@ export class Player extends React.Component {
     componentWillUnmount() {
         this.buf.stop();
         window.removeEventListener("keydown", this.handleKeyDown, false);
-        this.state.term.destroy();
+        this.state.term.dispose();
     }
 }

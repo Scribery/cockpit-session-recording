@@ -1,4 +1,4 @@
-@import "~xterm/lib/xterm.css";
+@import "xterm/css/xterm.css";
 
 .player-wrap {
     min-width: 672px;
@@ -12,10 +12,6 @@
 
 .dragnpan {
     -webkit-touch-callout: none;
-    -webkit-user-select: none;
-    -khtml-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
     user-select: none;
 }
 

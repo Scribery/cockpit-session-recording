@@ -23,7 +23,7 @@ class TestApplication(testlib.MachineCase):
         self.login_and_go(loc)
         b = self.browser
         m = self.machine
-        b.wait_present(wait)
+        b.wait_visible(wait)
         self.allow_journal_messages('.*type=1400.*avc:  denied .* comm="systemctl".*')
         return b, m
 
@@ -89,7 +89,7 @@ class TestApplication(testlib.MachineCase):
         b, _ = self._login()
         self._sel_rec('rec1')
         # increase speed
-        b.wait_present("#player-speed-up")
+        b.wait_visible("#player-speed-up")
         b.click("#player-speed-up")
         b.wait_text("#player-speed", "x2")
         b.click("#player-speed-up")
@@ -133,25 +133,25 @@ class TestApplication(testlib.MachineCase):
         b, _ = self._login()
         self._sel_rec('rec1')
         # Wait for terminal with scale(1)
-        b.wait_present(default_scale_sel)
+        b.wait_visible(default_scale_sel)
         # Zoom in x3
         b.click("#player-zoom-in")
-        b.wait_present(zoom_one_scale_sel)
+        b.wait_visible(zoom_one_scale_sel)
         b.click("#player-zoom-in")
-        b.wait_present(zoom_two_scale_sel)
+        b.wait_visible(zoom_two_scale_sel)
         b.click("#player-zoom-in")
-        b.wait_present(zoom_three_scale_sel)
+        b.wait_visible(zoom_three_scale_sel)
         # Zoom Out
         b.click("#player-zoom-out")
-        b.wait_present(zoom_two_scale_sel)
+        b.wait_visible(zoom_two_scale_sel)
         # Fit zoom to screen
         b.click("#player-fit-to")
-        b.wait_present(zoom_fit_to)
+        b.wait_visible(zoom_fit_to)
 
     def testSkipFrame(self):
         b, _ = self._login()
         self._sel_rec('rec1')
-        b.wait_present(self._term_line(1))
+        b.wait_visible(self._term_line(1))
         # loop until 3 valid frames have passed
         while "localhost" not in b.text(self._term_line(1)):
             b.click("#player-skip-frame")
@@ -300,7 +300,7 @@ class TestApplication(testlib.MachineCase):
         while "exit" not in b.text(self._term_line(22)):
             b.click("#player-skip-frame")
         # check for extra log entries
-        b.wait_present(".pf-c-data-list:contains('authentication failure')")
+        b.wait_visible(".pf-c-data-list:contains('authentication failure')")
 
     def testZoomSpeedControls(self):
         b, m = self._login()
@@ -315,17 +315,17 @@ class TestApplication(testlib.MachineCase):
         # set speed x16 and begin playing, expecting a size adjustment
         for _ in range(4):
             b.click("#player-speed-up")
-        b.wait_present(default_scale_sel)
+        b.wait_visible(default_scale_sel)
         b.click("#player-play-pause")
-        b.wait_present(play_scale_sel)
+        b.wait_visible(play_scale_sel)
         # wait until sleeping and zoom in
         b.wait_in_text(self._term_line(8), "sleep")
         b.click("#player-zoom-in")
-        b.wait_present(zoom_one_scale_sel)
+        b.wait_visible(zoom_one_scale_sel)
         # zoom out while typing fast
         b.wait_in_text(self._term_line(9), "localhost")
         b.click("#player-zoom-out")
-        b.wait_present(play_scale_sel)
+        b.wait_visible(play_scale_sel)
 
     def _filter(self, inp, occ_dict):
         # ignore errors from half-entered timestamps due to searches occuring
@@ -407,7 +407,7 @@ class TestApplication(testlib.MachineCase):
                                     ".*xml.etree.ElementTree.ParseError:.*")
         b.click(srbut)
         b.enter_page("/session-recording")
-        b.wait_present("#app")
+        b.wait_visible("#app")
 
 if __name__ == "__main__":
     testlib.test_main()

@@ -82,7 +82,7 @@ class TestApplication(testlib.MachineCase):
         b.wait_attr(progress, "style", "width: 100%;")
         # test restart playback
         b.click("#player-restart")
-        b.wait_text(self._term_line(1), "Blank line")
+        b.wait_text(self._term_line(7), "thisisatest123")
         b.wait_attr(progress, "style", "width: 100%;")
 
     def testSpeedControls(self):

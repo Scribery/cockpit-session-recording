@@ -430,7 +430,7 @@ class SssdConfig extends React.Component {
     }
 
     customIniUnparser(obj) {
-        return ini.stringify(obj).replace('domainnssfiles', 'domain/nssfiles');
+        return ini.stringify(obj, { platform: 'linux' }).replace('domainnssfiles', 'domain/nssfiles');
     }
 
     restartSSSD() {
@@ -444,14 +444,18 @@ class SssdConfig extends React.Component {
         /* Update nsswitch, this will fail on RHEL8/F34 and lower as 'with-files-domain' feature is not added there */
         const authselect_cmd = ["authselect", "select", "sssd", "with-files-domain", "--force"];
         this.setState({ submitting: true });
-        this.file.replace(obj).done(() => {
-            cockpit.spawn(chmod_cmd, { superuser: "require" })
-                    .then(() => {
-                        cockpit.spawn(authselect_cmd, { superuser: "require" })
-                                .then(this.restartSSSD)
-                                .catch(this.restartSSSD);
-                    });
-        });
+        this.file.replace(obj)
+                .then(tag => {
+                    cockpit.spawn(chmod_cmd, { superuser: "require" })
+                            .then(() => {
+                                cockpit.spawn(authselect_cmd, { superuser: "require" })
+                                        .then(this.restartSSSD)
+                                        .catch(this.restartSSSD);
+                            });
+                })
+                .catch(error => {
+                    console.error(error);
+                });
     }
 
     componentDidMount() {

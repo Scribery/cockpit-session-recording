@@ -1,17 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <component type="addon">
-  <id>org.cockpit-project.session-recording</id>
+  <id>org.cockpit_project.session-recording</id>
   <metadata_license>CC0-1.0</metadata_license>
   <name>Session Recording</name>
-  <summary>
-    Session Recording module for Cockpit
-  </summary>
+  <summary>Session Recording module for Cockpit</summary>
   <description>
     <p>
-      Provides Session Recording module for Cockpit. Provides list of recorded by tlog terminal sessions from Journal.
+      Provides Session Recoridng moduel for Cockpit. Provides list of recorded by tlog terminal sessions from Journal.
       Allows to play them in a player with various controls. Shows correlated logs which happened during session.
     </p>
   </description>
   <extends>org.cockpit_project.cockpit</extends>
   <launchable type="cockpit-manifest">session-recording</launchable>
+  <url type="homepage">https://github.com/Scribery/cockpit-session-recording</url>
+  <url type="bugtracker">https://github.com/Scribery/cockpit-session-recording/issues</url>
+  <update_contact>cockpit-devel_AT_lists.fedorahosted.org</update_contact>
 </component>

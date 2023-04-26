@@ -1,7 +1,7 @@
 #!/bin/sh
-# image-customize script to enable cockpit in test VMs
-# The application RPM will be installed separately
-set -eu
+# image-customize script to prepare a bots VM for testing this application
+# The application package will be installed separately
+set -eux
 
 # don't force https:// (self-signed cert)
 printf "[WebService]\\nAllowUnencrypted=true\\n" > /etc/cockpit/cockpit.conf
@@ -11,5 +11,5 @@ if type firewall-cmd >/dev/null 2>&1; then
 fi
 systemctl enable cockpit.socket
 
-# HACK: See https://github.com/cockpit-project/cockpit/issues/14133
-mkdir -p /usr/share/cockpit/packagekit
+# needed for testAppMenu
+dnf install -y cockpit-packagekit

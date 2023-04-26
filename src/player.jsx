@@ -1273,6 +1273,7 @@ export class Player extends React.Component {
                 label={timeStr}
                 value={this.state.curTS}
                 onClick={this.handleProgressClick}
+                aria-label="Player Progress"
             />
         );
 

@@ -480,7 +480,6 @@ class SssdConfig extends React.Component {
         const obj = {};
         /* SSSD section */
         obj.sssd = {};
-        obj.sssd.enable_files_domain = "true";
         obj.sssd.services = "nss";
         obj.sssd.domains = "nssfiles";
         /* Proxy provider */

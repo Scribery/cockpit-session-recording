@@ -19,7 +19,6 @@
 
 import cockpit from 'cockpit';
 import React from 'react';
-import './app.scss';
 import View from "./recordings.jsx";
 
 const _ = cockpit.gettext;
@@ -29,10 +28,9 @@ export class Application extends React.Component {
         super();
         this.state = { hostname: _("Unknown") };
 
-        cockpit.file('/etc/hostname').read()
-                .done((content) => {
-                    this.setState({ hostname: content.trim() });
-                });
+        cockpit.file('/etc/hostname').watch(content => {
+            this.setState({ hostname: content.trim() });
+        });
     }
 
     render() {

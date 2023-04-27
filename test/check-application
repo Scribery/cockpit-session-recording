@@ -305,7 +305,7 @@ class TestApplication(testlib.MachineCase):
     def testZoomSpeedControls(self):
         b, m = self._login()
         default_scale_sel = '.console-ct[style^="transform: scale(1)"]'
-        if m.image.startswith('rhel') or m.image.startswith('centos'):
+        if m.image.startswith('rhel'):
             play_scale_sel = '.console-ct[style^="transform: scale(0.3"]'
             zoom_one_scale_sel = '.console-ct[style^="transform: scale(0.4"]'
         else:

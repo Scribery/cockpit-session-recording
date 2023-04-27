@@ -1,4 +1,4 @@
-@import "~xterm/lib/xterm.css";
+@import "xterm/css/xterm.css";
 
 .player-wrap {
     min-width: 672px;
@@ -12,10 +12,6 @@
 
 .dragnpan {
     -webkit-touch-callout: none;
-    -webkit-user-select: none;
-    -khtml-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
     user-select: none;
 }
 
@@ -67,16 +63,16 @@
 
 .search-wrap {
     min-height: 25px;
-    display:block;
-    clear:both;
+    display: block;
+    clear: both;
 }
 
 .session_time {
-    margin-right:5px;
+    margin-right: 5px;
 }
 
-.pf-c-progress__indicator:after {
-    content: "";  
+.pf-c-progress__indicator::after {
+    content: "";
     position: relative;
     width: 20px;
     height: 20px;

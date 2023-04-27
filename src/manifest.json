@@ -3,7 +3,7 @@
     "name": "session-recording",
 
     "requires": {
-	"cockpit": "122"
+	"cockpit": "137"
     },
 
     "menu": {

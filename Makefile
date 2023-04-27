@@ -3,24 +3,45 @@ PACKAGE_NAME := $(shell awk '/"name":/ {gsub(/[",]/, "", $$2); print $$2}' packa
 RPM_NAME := cockpit-$(PACKAGE_NAME)
 VERSION := $(shell T=$$(git describe 2>/dev/null) || T=1; echo $$T | tr '-' '.')
 ifeq ($(TEST_OS),)
-TEST_OS = rhel-x
+TEST_OS = centos-8-stream
 endif
 export TEST_OS
-TARFILE=cockpit-$(PACKAGE_NAME)-$(VERSION).tar.xz
+TARFILE=$(RPM_NAME)-$(VERSION).tar.xz
+NODE_CACHE=$(RPM_NAME)-node-$(VERSION).tar.xz
 SPEC=$(RPM_NAME).spec
-# rpmspec -q behaves differently in Fedora ≥ 37
-RPMQUERY=$(shell rpmspec -D"VERSION $(VERSION)" -q --srpm $(SPEC).in).rpm
-SRPMFILE=$(subst noarch,src,$(RPMQUERY))
-RPMFILE=$(subst src,noarch,$(RPMQUERY))
+PREFIX ?= /usr/local
+APPSTREAMFILE=org.cockpit-project.$(PACKAGE_NAME).metainfo.xml
 VM_IMAGE=$(CURDIR)/test/images/$(TEST_OS)
-# stamp file to check if/when npm install ran
+# stamp file to check for node_modules/
 NODE_MODULES_TEST=package-lock.json
-# one example file in dist/ from webpack to check if that already ran
-WEBPACK_TEST=dist/manifest.json
-# one example file in src/lib to check if it was already checked out
-LIB_TEST=src/lib/cockpit-po-plugin.js
+# one example file in dist/ from bundler to check if that already ran
+DIST_TEST=dist/manifest.json
+# one example file in pkg/lib to check if it was already checked out
+COCKPIT_REPO_STAMP=pkg/lib/cockpit-po-plugin.js
+# common arguments for tar, mostly to make the generated tarballs reproducible
+TAR_ARGS = --sort=name --mtime "@$(shell git show --no-patch --format='%at')" --mode=go=rX,u+rw,a-s --numeric-owner --owner=0 --group=0
 
-all: $(WEBPACK_TEST)
+all: $(DIST_TEST)
+
+# checkout common files from Cockpit repository required to build this project;
+# this has no API stability guarantee, so check out a stable tag when you start
+# a new project, use the latest release, and update it from time to time
+COCKPIT_REPO_FILES = \
+	pkg/lib \
+	test/common \
+	tools/git-utils.sh \
+	tools/make-bots \
+	$(NULL)
+
+COCKPIT_REPO_URL = https://github.com/cockpit-project/cockpit.git
+COCKPIT_REPO_COMMIT = 6073b2703acd68e216bd9dbc116c30d2d7a9701c # 288.1 + esbuild plugin updates
+
+$(COCKPIT_REPO_FILES): $(COCKPIT_REPO_STAMP)
+COCKPIT_REPO_TREE = '$(strip $(COCKPIT_REPO_COMMIT))^{tree}'
+$(COCKPIT_REPO_STAMP): Makefile
+	@git rev-list --quiet --objects $(COCKPIT_REPO_TREE) -- 2>/dev/null || \
+	    git fetch --no-tags --no-write-fetch-head --depth=1 $(COCKPIT_REPO_URL) $(COCKPIT_REPO_COMMIT)
+	git archive $(COCKPIT_REPO_TREE) -- $(COCKPIT_REPO_FILES) | tar x
 
 #
 # i18n
@@ -28,95 +49,98 @@ all: $(WEBPACK_TEST)
 
 LINGUAS=$(basename $(notdir $(wildcard po/*.po)))
 
-po/POTFILES.js.in:
-	mkdir -p $(dir $@)
-	find src/ -name '*.js' -o -name '*.jsx' > $@
-
-po/$(PACKAGE_NAME).js.pot: po/POTFILES.js.in
-	xgettext --default-domain=cockpit --output=$@ --language=C --keyword= \
-		--keyword=_:1,1t --keyword=_:1c,2,1t --keyword=C_:1c,2 \
+po/$(PACKAGE_NAME).js.pot:
+	xgettext --default-domain=$(PACKAGE_NAME) --output=$@ --language=C --keyword= \
+		--keyword=_:1,1t --keyword=_:1c,2,2t --keyword=C_:1c,2 \
 		--keyword=N_ --keyword=NC_:1c,2 \
 		--keyword=gettext:1,1t --keyword=gettext:1c,2,2t \
 		--keyword=ngettext:1,2,3t --keyword=ngettext:1c,2,3,4t \
 		--keyword=gettextCatalog.getString:1,3c --keyword=gettextCatalog.getPlural:2,3,4c \
-		--from-code=UTF-8 --files-from=$^
+		--from-code=UTF-8 $$(find src/ -name '*.js' -o -name '*.jsx')
 
-po/POTFILES.html.in:
-	mkdir -p $(dir $@)
-	find src -name '*.html' > $@
+po/$(PACKAGE_NAME).html.pot: $(NODE_MODULES_TEST) $(COCKPIT_REPO_STAMP)
+	pkg/lib/html2po.js -o $@ $$(find src -name '*.html')
 
-po/$(PACKAGE_NAME).html.pot: po/POTFILES.html.in
-	po/html2po -f $^ -o $@
+po/$(PACKAGE_NAME).manifest.pot: $(NODE_MODULES_TEST) $(COCKPIT_REPO_STAMP)
+	pkg/lib/manifest2po.js src/manifest.json -o $@
 
-po/$(PACKAGE_NAME).manifest.pot:
-	po/manifest2po src/manifest.json -o $@
+po/$(PACKAGE_NAME).metainfo.pot: $(APPSTREAMFILE)
+	xgettext --default-domain=$(PACKAGE_NAME) --output=$@ $<
 
-po/$(PACKAGE_NAME).pot: po/$(PACKAGE_NAME).html.pot po/$(PACKAGE_NAME).js.pot po/$(PACKAGE_NAME).manifest.pot
+po/$(PACKAGE_NAME).pot: po/$(PACKAGE_NAME).html.pot po/$(PACKAGE_NAME).js.pot po/$(PACKAGE_NAME).manifest.pot po/$(PACKAGE_NAME).metainfo.pot
 	msgcat --sort-output --output-file=$@ $^
 
-# Update translations against current PO template
-update-po: po/$(PACKAGE_NAME).pot
-	for lang in $(LINGUAS); do \
-		msgmerge --output-file=po/$$lang.po po/$$lang.po $<; \
-	done
-
-dist/po.%.js: po/%.po $(NODE_MODULES_TEST)
-	mkdir -p $(dir $@)
-	po/po2json -m po/po.empty.js -o $@.js.tmp $<
-	mv $@.js.tmp $@
+po/LINGUAS:
+	echo $(LINGUAS) | tr ' ' '\n' > $@
 
 #
 # Build/Install/dist
 #
 
-%.spec: %.spec.in
-	sed -e 's/%{VERSION}/$(VERSION)/g' $< > $@
+$(SPEC): packaging/$(SPEC).in $(NODE_MODULES_TEST)
+	provides=$$(npm ls --omit dev --package-lock-only --depth=Infinity | grep -Eo '[^[:space:]]+@[^[:space:]]+' | sort -u | sed 's/^/Provides: bundled(npm(/; s/\(.*\)@/\1)) = /'); \
+	awk -v p="$$provides" '{gsub(/%{VERSION}/, "$(VERSION)"); gsub(/%{NPM_PROVIDES}/, p)}1' $< > $@
 
-$(WEBPACK_TEST): $(NODE_MODULES_TEST) $(LIB_TEST) $(shell find src/ -type f) package.json webpack.config.js $(patsubst %,dist/po.%.js,$(LINGUAS))
-	NODE_ENV=$(NODE_ENV) node_modules/.bin/webpack
+$(DIST_TEST): $(NODE_MODULES_TEST) $(COCKPIT_REPO_STAMP) $(shell find src/ -type f) package.json build.js
+	NODE_ENV=$(NODE_ENV) ./build.js
 
 watch:
-	NODE_ENV=$(NODE_ENV) node_modules/.bin/webpack --watch
+	NODE_ENV=$(NODE_ENV) npm run watch
 
 clean:
 	rm -rf dist/
-	[ ! -e cockpit-$(PACKAGE_NAME).spec.in ] || rm -f cockpit-$(PACKAGE_NAME).spec
+	rm -f $(SPEC)
+	rm -f po/LINGUAS
 
-install: $(WEBPACK_TEST)
-	mkdir -p $(DESTDIR)/usr/share/cockpit/$(PACKAGE_NAME)
-	cp -r dist/* $(DESTDIR)/usr/share/cockpit/$(PACKAGE_NAME)
-	mkdir -p $(DESTDIR)/usr/share/metainfo/
-	cp org.cockpit-project.$(PACKAGE_NAME).metainfo.xml $(DESTDIR)/usr/share/metainfo/
+install: $(DIST_TEST) po/LINGUAS
+	mkdir -p $(DESTDIR)$(PREFIX)/share/cockpit/$(PACKAGE_NAME)
+	cp -r dist/* $(DESTDIR)$(PREFIX)/share/cockpit/$(PACKAGE_NAME)
+	mkdir -p $(DESTDIR)$(PREFIX)/share/metainfo/
+	msgfmt --xml -d po \
+		--template $(APPSTREAMFILE) \
+		-o $(DESTDIR)$(PREFIX)/share/metainfo/$(APPSTREAMFILE)
 
 # this requires a built source tree and avoids having to install anything system-wide
-devel-install: $(WEBPACK_TEST)
+devel-install: $(DIST_TEST)
 	mkdir -p ~/.local/share/cockpit
 	ln -s `pwd`/dist ~/.local/share/cockpit/$(PACKAGE_NAME)
 
-dist: $(TARFILE)
+# assumes that there was symlink set up using the above devel-install target,
+# and removes it
+devel-uninstall:
+	rm -f ~/.local/share/cockpit/$(PACKAGE_NAME)
 
-# when building a distribution tarball, call webpack with a 'production' environment
+print-version:
+	@echo "$(VERSION)"
+
+dist: $(TARFILE)
+	@ls -1 $(TARFILE)
+
+# when building a distribution tarball, call bundler with a 'production' environment
 # we don't ship node_modules for license and compactness reasons; we ship a
-# pre-built dist/ (so it's not necessary) and ship packge-lock.json (so that
+# pre-built dist/ (so it's not necessary) and ship package-lock.json (so that
 # node_modules/ can be reconstructed if necessary)
 $(TARFILE): export NODE_ENV=production
-$(TARFILE): $(WEBPACK_TEST) cockpit-$(PACKAGE_NAME).spec
+$(TARFILE): $(DIST_TEST) $(SPEC)
 	if type appstream-util >/dev/null 2>&1; then appstream-util validate-relax --nonet *.metainfo.xml; fi
-	touch -r package.json $(NODE_MODULES_TEST)
-	touch dist/*
-	tar --xz -cf cockpit-$(PACKAGE_NAME)-$(VERSION).tar.xz --transform 's,^,cockpit-$(PACKAGE_NAME)/,' \
-		--exclude cockpit-$(PACKAGE_NAME).spec.in --exclude node_modules \
-		$$(git ls-files) src/lib package-lock.json cockpit-$(PACKAGE_NAME).spec dist/
+	tar --xz $(TAR_ARGS) -cf $(TARFILE) --transform 's,^,$(RPM_NAME)/,' \
+		--exclude packaging/$(SPEC).in --exclude node_modules \
+		$$(git ls-files) $(COCKPIT_REPO_FILES) $(NODE_MODULES_TEST) $(SPEC) dist/
 
-srpm: $(TARFILE) cockpit-$(PACKAGE_NAME).spec
+$(NODE_CACHE): $(NODE_MODULES_TEST)
+	tar --xz $(TAR_ARGS) -cf $@ node_modules
+
+node-cache: $(NODE_CACHE)
+
+# convenience target for developers
+srpm: $(TARFILE) $(NODE_CACHE) $(SPEC)
 	rpmbuild -bs \
 	  --define "_sourcedir `pwd`" \
 	  --define "_srcrpmdir `pwd`" \
-	  cockpit-$(PACKAGE_NAME).spec
+	  $(SPEC)
 
-rpm: $(RPMFILE)
-
-$(RPMFILE): $(TARFILE) cockpit-$(PACKAGE_NAME).spec
+# convenience target for developers
+rpm: $(TARFILE) $(NODE_CACHE) $(SPEC)
 	mkdir -p "`pwd`/output"
 	mkdir -p "`pwd`/rpmbuild"
 	rpmbuild -bb \
@@ -126,55 +150,58 @@ $(RPMFILE): $(TARFILE) cockpit-$(PACKAGE_NAME).spec
 	  --define "_srcrpmdir `pwd`" \
 	  --define "_rpmdir `pwd`/output" \
 	  --define "_buildrootdir `pwd`/build" \
-	  cockpit-$(PACKAGE_NAME).spec
+	  $(SPEC)
 	find `pwd`/output -name '*.rpm' -printf '%f\n' -exec mv {} . \;
 	rm -r "`pwd`/rpmbuild"
 	rm -r "`pwd`/output" "`pwd`/build"
-	# sanity check
-	test -e "$(RPMFILE)"
 
-# build a VM with locally built rpm installed
-$(VM_IMAGE): $(RPMFILE) bots
-	rm -f $(VM_IMAGE) $(VM_IMAGE).qcow2
-	bots/image-customize -v -i `pwd`/$(RPMFILE) -s $(CURDIR)/test/vm.install $(TEST_OS)
-	bots/image-customize -v -u ./test/files/1.journal:/var/log/journal/1.journal $(TEST_OS)
-	bots/image-customize -v -u ./test/files/binary-rec.journal:/var/log/journal/binary-rec.journal $(TEST_OS)
+ifeq ("$(TEST_SCENARIO)","pybridge")
+COCKPIT_PYBRIDGE_REF = main
+COCKPIT_WHEEL = cockpit-0-py3-none-any.whl
+
+$(COCKPIT_WHEEL):
+	pip wheel git+https://github.com/cockpit-project/cockpit.git@${COCKPIT_PYBRIDGE_REF}
+
+VM_DEPENDS = $(COCKPIT_WHEEL)
+VM_CUSTOMIZE_FLAGS = --install $(COCKPIT_WHEEL)
+endif
+
+# build a VM with locally built distro pkgs installed
+# disable networking, VM images have mock/pbuilder with the common build dependencies pre-installed
+$(VM_IMAGE): $(TARFILE) $(NODE_CACHE) bots test/vm.install $(VM_DEPENDS)
+	bots/image-customize --fresh \
+		$(VM_CUSTOMIZE_FLAGS) \
+		--upload $(NODE_CACHE):/var/tmp/ --build $(TARFILE) \
+		--upload ./test/files/1.journal:/var/log/journal/1.journal \
+		--upload ./test/files/binary-rec.journal:/var/log/journal/binary-rec.journal \
+		--script $(CURDIR)/test/vm.install $(TEST_OS)
 
 # convenience target for the above
 vm: $(VM_IMAGE)
-	echo $(VM_IMAGE)
+	@echo $(VM_IMAGE)
+
+# convenience target to print the filename of the test image
+print-vm:
+	@echo $(VM_IMAGE)
+
+# convenience target to setup all the bits needed for the integration tests
+# without actually running them
+prepare-check: $(NODE_MODULES_TEST) $(VM_IMAGE) test/common
 
 # run the browser integration tests; skip check for SELinux denials
 # this will run all tests/check-* and format them as TAP
-check: $(NODE_MODULES_TEST) $(VM_IMAGE) test/common
-	TEST_AUDIT_NO_SELINUX=1 test/common/run-tests
+check: prepare-check
+	TEST_AUDIT_NO_SELINUX=1 test/common/run-tests ${RUN_TESTS_OPTIONS}
 
 # checkout Cockpit's bots for standard test VM images and API to launch them
-# must be from master, as only that has current and existing images; but testvm.py API is stable
-# support CI testing against a bots change
-bots:
-	git clone --quiet --reference-if-able $${XDG_CACHE_HOME:-$$HOME/.cache}/cockpit-project/bots https://github.com/cockpit-project/bots.git
-	if [ -n "$$COCKPIT_BOTS_REF" ]; then git -C bots fetch --quiet --depth=1 origin "$$COCKPIT_BOTS_REF"; git -C bots checkout --quiet FETCH_HEAD; fi
-	@echo "checked out bots/ ref $$(git -C bots rev-parse HEAD)"
-
-# checkout Cockpit's test API; this has no API stability guarantee, so check out a stable tag
-# when you start a new project, use the latest release, and update it from time to time
-test/common:
-	git fetch --depth=1 https://github.com/cockpit-project/cockpit.git 267
-	git checkout --force FETCH_HEAD -- test/common
-	git reset test/common
-
-# checkout Cockpit's PF/React/build library; again this has no API stability guarantee, so check out a stable tag
-$(LIB_TEST):
-	git clone -b 256 --depth=1 https://github.com/cockpit-project/cockpit.git tmp/cockpit
-	mv tmp/cockpit/pkg/lib src/
-	rm -rf tmp/cockpit
+bots: tools/make-bots
+	tools/make-bots
 
 $(NODE_MODULES_TEST): package.json
 	# if it exists already, npm install won't update it; force that so that we always get up-to-date packages
 	rm -f package-lock.json
 	# unset NODE_ENV, skips devDependencies otherwise
-	env -u NODE_ENV npm install
+	env -u NODE_ENV npm install --ignore-scripts
 	env -u NODE_ENV npm prune
 
-.PHONY: all clean install devel-install dist srpm rpm check vm update-po
+.PHONY: all clean install devel-install devel-uninstall print-version dist node-cache rpm prepare-check check vm print-vm

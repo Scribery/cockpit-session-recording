@@ -1,0 +1,25 @@
+require:
+  - cockpit-session-recording
+  - tlog
+  - cockpit-ws
+  - cockpit-system
+  - cockpit-packagekit
+  - bzip2
+  - git-core
+  - libvirt-python3
+  - make
+  - nodejs
+  - python3
+duration: 30m
+
+/system:
+    test: ./browser.sh system
+    summary: Run *System tests
+
+/user:
+    test: ./browser.sh user
+    summary: Run *User tests
+
+/other:
+    test: ./browser.sh other
+    summary: Run all other tests

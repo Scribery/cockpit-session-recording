@@ -469,19 +469,54 @@ class SssdConfig extends React.Component {
             superuser: true,
         });
 
+        const conf_syntax_object = {
+            parse:     ini.parse,
+        };
+
+        this.sssdconf = cockpit.file("/etc/sssd/sssd.conf", {
+            syntax: conf_syntax_object,
+            superuser: true,
+        });
+
         const promise = this.file.read();
+        const sssdconfpromise = this.sssdconf.read();
 
         promise.fail(function(error) {
             console.log(error);
         });
+
+        /* It is not an error when the file does not exist, then() callback will
+         * be called with a null value for content and tag is "-" */
+        sssdconfpromise
+                .then((content, tag) => {
+                    if (content !== null) {
+                        this.existingServices = content.sssd.services;
+                        this.existingDomains = content.sssd.domains;
+                    }
+                })
+                .catch(error => {
+                    console.log("Error: " + error);
+                });
     }
 
     handleSubmit(e) {
         const obj = {};
         /* SSSD section */
         obj.sssd = {};
-        obj.sssd.services = "nss";
-        obj.sssd.domains = "nssfiles";
+        /* Avoid overwriting services and domain sections of existing sssd.conf
+         * Copy the services section used in sssd.conf, and append 'proxy' to
+         * existing domain section */
+        if (this.existingServices) {
+            obj.sssd.services = this.existingServices;
+        } else {
+            obj.sssd.services = "nss, pam";
+        }
+
+        if (this.existingDomains) {
+            obj.sssd.domains = this.existingDomains + ", nssfiles";
+        } else {
+            obj.sssd.domains = "nssfiles";
+        }
         /* Proxy provider */
         obj.domainnssfiles = {}; /* Unparser converts this into domain/nssfiles */
         obj.domainnssfiles.id_provider = "proxy";

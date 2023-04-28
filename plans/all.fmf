@@ -4,12 +4,12 @@ execute:
     how: tmt
 
 /system:
-    summary: Run tests on system podman
+    summary: Run tests on system session-recording
     discover+:
         test: /test/browser/system
 
 /user:
-    summary: Run tests on user podman
+    summary: Run tests on user session-recording
     discover+:
         test: /test/browser/user
 

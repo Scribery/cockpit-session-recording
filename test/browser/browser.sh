@@ -4,6 +4,7 @@ set -eux
 TESTS="$(realpath $(dirname "$0"))"
 SOURCE="$(realpath $TESTS/../..)"
 LOGS="$(pwd)/logs"
+FILES="$(realpath $TESTS/../files)"
 mkdir -p "$LOGS"
 chmod a+w "$LOGS"
 
@@ -49,8 +50,8 @@ echo core > /proc/sys/kernel/core_pattern
 dnf install -y cockpit-packagekit glibc-langpack-en
 
 mkdir -p /var/log/journal/
-cp 1.journal /var/log/journal/1.journal
-cp binary-rec.journal /var/log/journal/binary-rec.journal
+cp $FILES/1.journal /var/log/journal/1.journal
+cp $FILES/binary-rec.journal /var/log/journal/binary-rec.journal
 
 # Add proxy provider domain for sssd for testSessionRecordingConf test
 cat > /etc/sssd/sssd.conf <<EOF

@@ -54,6 +54,8 @@ cp $FILES/1.journal /var/log/journal/1.journal
 cp $FILES/binary-rec.journal /var/log/journal/binary-rec.journal
 
 # Add proxy provider domain for sssd for testSessionRecordingConf test
+dnf install -y sssd-proxy
+
 cat > /etc/sssd/sssd.conf <<EOF
 [sssd]
 services=nss, pam

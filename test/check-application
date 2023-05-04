@@ -317,7 +317,7 @@ class TestApplication(testlib.MachineCase):
             b.click("#player-speed-up")
         b.wait_visible(default_scale_sel)
         b.click("#player-play-pause")
-        b.wait_visible(play_scale_sel)
+        b.wait_in_text("player-speed", x16)
         # wait until sleeping and zoom in
         b.wait_in_text(self._term_line(8), "sleep")
         b.click("#player-zoom-in")

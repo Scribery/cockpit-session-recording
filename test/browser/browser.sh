@@ -3,7 +3,8 @@ set -eux
 
 TESTS="$(realpath $(dirname "$0"))"
 SOURCE="$(realpath $TESTS/../..)"
-LOGS="$(pwd)/logs"
+# https://tmt.readthedocs.io/en/stable/overview.html#variables
+LOGS="${TMT_TEST_DATA:-$(pwd)/logs}"
 FILES="$(realpath $TESTS/../files)"
 mkdir -p "$LOGS"
 chmod a+w "$LOGS"

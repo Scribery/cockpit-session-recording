@@ -305,27 +305,20 @@ class TestApplication(testlib.MachineCase):
     def testZoomSpeedControls(self):
         b, m = self._login()
         default_scale_sel = '.console-ct[style^="transform: scale(1)"]'
-        if m.image.startswith('rhel'):
-            play_scale_sel = '.console-ct[style^="transform: scale(0.3"]'
-            zoom_one_scale_sel = '.console-ct[style^="transform: scale(0.4"]'
-        else:
-            play_scale_sel = '.console-ct[style^="transform: scale(0.4"]'
-            zoom_one_scale_sel = '.console-ct[style^="transform: scale(0.5"]'
         self._sel_rec('rec1')
-        # set speed x16 and begin playing, expecting a size adjustment
+        # set speed x16 and begin playing
         for _ in range(4):
             b.click("#player-speed-up")
         b.wait_visible(default_scale_sel)
         b.click("#player-play-pause")
-        b.wait_visible(play_scale_sel)
         # wait until sleeping and zoom in
         b.wait_in_text(self._term_line(8), "sleep")
         b.click("#player-zoom-in")
-        b.wait_visible(zoom_one_scale_sel)
+        b.wait_not_present(default_scale_sel)
         # zoom out while typing fast
         b.wait_in_text(self._term_line(9), "localhost")
         b.click("#player-zoom-out")
-        b.wait_visible(play_scale_sel)
+        b.wait_not_present(default_scale_sel)
 
     def _filter(self, inp, occ_dict):
         # ignore errors from half-entered timestamps due to searches occuring

@@ -321,6 +321,9 @@ class TestApplication(testlib.MachineCase):
         b.wait_not_present(default_scale_sel)
 
     def _filter(self, inp, occ_dict):
+        m = self.machine
+
+        m.execute("timedatectl set-timezone America/New_York")
         # ignore errors from half-entered timestamps due to searches occuring
         # before `set_input_text` is complete
         self.allow_journal_messages(".*timestamp.*")

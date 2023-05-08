@@ -54,22 +54,6 @@ mkdir -p /var/log/journal/
 cp $FILES/1.journal /var/log/journal/1.journal
 cp $FILES/binary-rec.journal /var/log/journal/binary-rec.journal
 
-# Add proxy provider domain for sssd for testSessionRecordingConf test
-dnf install -y sssd-proxy
-
-cat > /etc/sssd/sssd.conf <<EOF
-[sssd]
-services=nss, pam
-domains=nssfiles
-
-[domain/nssfiles]
-id_provider=proxy
-proxy_lib_name=files
-proxy_pam_target=sssd-shadowutils
-EOF
-chmod 600 /etc/sssd/sssd.conf
-systemctl start sssd
-
 systemctl enable --now cockpit.socket
 
 # Run tests as unprivileged user

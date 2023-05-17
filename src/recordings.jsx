@@ -35,20 +35,14 @@ import {
     ExpandableSection,
     Page, PageSection, PageSectionVariants,
     Spinner,
-    Title,
     TextInput,
     Toolbar,
     ToolbarContent,
     ToolbarItem,
-    ToolbarGroup,
+    ToolbarGroup, EmptyStateHeader,
 } from "@patternfly/react-core";
-import {
-    sortable,
-    SortByDirection,
-    Table,
-    TableHeader,
-    TableBody
-} from "@patternfly/react-table";
+import { sortable, SortByDirection } from '@patternfly/react-table';
+import { TableHeader, TableBody, Table as TableDeprecated } from '@patternfly/react-table/deprecated';
 import {
     CogIcon,
     ExclamationCircleIcon,
@@ -321,11 +315,9 @@ class Logs extends React.Component {
         if (r == null) {
             return (
                 <Bullseye>
-                    <EmptyState variant={EmptyStateVariant.small}>
+                    <EmptyState variant={EmptyStateVariant.sm}>
                         <Spinner />
-                        <Title headingLevel="h2" size="lg">
-                            {_("Loading...")}
-                        </Title>
+                        <EmptyStateHeader titleText={<>{_("Loading...")}</>} headingLevel="h2" />
                     </EmptyState>
                 </Bullseye>
             );
@@ -410,11 +402,9 @@ class Recording extends React.Component {
         if (r == null) {
             return (
                 <Bullseye>
-                    <EmptyState variant={EmptyStateVariant.small}>
+                    <EmptyState variant={EmptyStateVariant.sm}>
                         <Spinner />
-                        <Title headingLevel="h2" size="lg">
-                            {_("Loading...")}
-                        </Title>
+                        <EmptyStateHeader titleText={<>{_("Loading...")}</>} headingLevel="h2" />
                     </EmptyState>
                 </Bullseye>
             );
@@ -527,7 +517,7 @@ class RecordingList extends React.Component {
 
         return (
             <>
-                <Table
+                <TableDeprecated
                     aria-label={_("Recordings")}
                     cells={columnTitles}
                     rows={rows}
@@ -536,13 +526,10 @@ class RecordingList extends React.Component {
                 >
                     <TableHeader />
                     <TableBody onRowClick={this.handleRowClick} />
-                </Table>
+                </TableDeprecated>
                 {!rows.length &&
-                    <EmptyState variant={EmptyStateVariant.small}>
-                        <EmptyStateIcon icon={SearchIcon} />
-                        <Title headingLevel="h2" size="lg">
-                            {_("No recordings found")}
-                        </Title>
+                    <EmptyState variant={EmptyStateVariant.sm}>
+                        <EmptyStateHeader titleText={<>{_("No recordings found")}</>} icon={<EmptyStateIcon icon={SearchIcon} />} headingLevel="h2" />
                         <EmptyStateBody>
                             {_("No recordings matched the filter criteria.")}
                         </EmptyStateBody>
@@ -847,14 +834,16 @@ export default class View extends React.Component {
         } else if (this.state.error_tlog_user === true) {
             return (
                 <Bullseye>
-                    <EmptyState variant={EmptyStateVariant.small}>
-                        <EmptyStateIcon
-                            icon={ExclamationCircleIcon}
-                            color={global_danger_color_200.value}
+                    <EmptyState variant={EmptyStateVariant.sm}>
+                        <EmptyStateHeader
+                            titleText={<>{_("Error")}</>}
+                            icon={
+                                <EmptyStateIcon
+                                icon={ExclamationCircleIcon}
+                                color={global_danger_color_200.value}
+                                />
+                            } headingLevel="h2"
                         />
-                        <Title headingLevel="h2" size="lg">
-                            {_("Error")}
-                        </Title>
                         <EmptyStateBody>
                             {_("Unable to retrieve tlog user from system.")}
                         </EmptyStateBody>
@@ -872,7 +861,7 @@ export default class View extends React.Component {
                                 placeholder={_("Filter since")}
                                 value={this.state.date_since}
                                 type="search"
-                                onChange={value => this.handleInputChange("date_since", value)}
+                                onChange={(_event, value) => this.handleInputChange("date_since", _event, value)}
                             />
                         </ToolbarItem>
                     </ToolbarGroup>
@@ -884,7 +873,7 @@ export default class View extends React.Component {
                                 placeholder={_("Filter until")}
                                 value={this.state.date_until}
                                 type="search"
-                                onChange={value => this.handleInputChange("date_until", value)}
+                                onChange={(_event, value) => this.handleInputChange("date_until", _event, value)}
                             />
                         </ToolbarItem>
                     </ToolbarGroup>
@@ -896,7 +885,7 @@ export default class View extends React.Component {
                                 placeholder={_("Filter by content")}
                                 value={this.state.search}
                                 type="search"
-                                onChange={value => this.handleInputChange("search", value)}
+                                onChange={(_event, value) => this.handleInputChange("search", _event, value)}
                             />
                         </ToolbarItem>
                     </ToolbarGroup>
@@ -908,7 +897,7 @@ export default class View extends React.Component {
                                 placeholder={_("Filter by username")}
                                 value={this.state.username}
                                 type="search"
-                                onChange={value => this.handleInputChange("username", value)}
+                                onChange={(_event, value) => this.handleInputChange("username", _event, value)}
                             />
                         </ToolbarItem>
                     </ToolbarGroup>
@@ -921,7 +910,7 @@ export default class View extends React.Component {
                                 placeholder={_("Filter by hostname")}
                                 value={this.state.hostname}
                                 type="search"
-                                onChange={value => this.handleInputChange("hostname", value)}
+                                onChange={(_event, value) => this.handleInputChange("hostname", _event, value)}
                             />
                         </ToolbarItem>
                     </ToolbarGroup>}

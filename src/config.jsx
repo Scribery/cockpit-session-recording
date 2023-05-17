@@ -36,10 +36,9 @@ import {
     Bullseye,
     EmptyState,
     EmptyStateIcon,
-    Title,
     EmptyStateBody,
     EmptyStateVariant,
-    Page, PageSection,
+    Page, PageSection, EmptyStateHeader,
 } from "@patternfly/react-core";
 import { ExclamationCircleIcon } from "@patternfly/react-icons";
 import { global_danger_color_200 } from "@patternfly/react-tokens";
@@ -53,6 +52,7 @@ class GeneralConfig extends React.Component {
     constructor(props) {
         super(props);
         this.handleSubmit = this.handleSubmit.bind(this);
+        this.handleInputChange = this.handleInputChange.bind(this);
         this.setConfig = this.setConfig.bind(this);
         this.fileReadFailed = this.fileReadFailed.bind(this);
         this.readConfig = this.readConfig.bind(this);
@@ -191,6 +191,12 @@ class GeneralConfig extends React.Component {
         this.readConfig();
     }
 
+    handleInputChange(name, value) {
+        const state = {};
+        state[name] = value;
+        this.setState(state);
+    }
+
     render() {
         const form =
             (this.state.config_loaded === false && this.state.file_error === false)
@@ -202,14 +208,14 @@ class GeneralConfig extends React.Component {
                                 <TextInput
                                     id="shell"
                                     value={this.state.shell}
-                                    onChange={shell => this.setState({ shell })}
+                                    onChange={(_event, value) => this.handleInputChange("shell", _event, value)}
                                 />
                             </FormGroup>
                             <FormGroup label={_("Notice")}>
                                 <TextInput
                                     id="notice"
                                     value={this.state.notice}
-                                    onChange={notice => this.setState({ notice })}
+                                    onChange={(_event, value) => this.handleInputChange("notice", _event, value)}
                                 />
                             </FormGroup>
                             <FormGroup label={_("Latency")}>
@@ -218,7 +224,7 @@ class GeneralConfig extends React.Component {
                                     type="number"
                                     step="1"
                                     value={this.state.latency}
-                                    onChange={latency => this.setState({ latency })}
+                                    onChange={(_event, value) => this.handleInputChange("latency", _event, value)}
                                 />
                             </FormGroup>
                             <FormGroup label={_("Payload Size, bytes")}>
@@ -227,26 +233,26 @@ class GeneralConfig extends React.Component {
                                     type="number"
                                     step="1"
                                     value={this.state.payload}
-                                    onChange={payload => this.setState({ payload })}
+                                    onChange={(_event, value) => this.handleInputChange("payload", _event, value)}
                                 />
                             </FormGroup>
                             <FormGroup label={_("Logging")}>
                                 <Checkbox
                                     id="log_input"
                                     isChecked={this.state.log_input}
-                                    onChange={log_input => this.setState({ log_input })}
+                                    onChange={(_event, log_input) => this.setState({ log_input })}
                                     label={_("User's Input")}
                                 />
                                 <Checkbox
                                     id="log_output"
                                     isChecked={this.state.log_output}
-                                    onChange={log_output => this.setState({ log_output })}
+                                    onChange={(_event, log_output) => this.setState({ log_output })}
                                     label={_("User's Output")}
                                 />
                                 <Checkbox
                                     id="log_window"
                                     isChecked={this.state.log_window}
-                                    onChange={log_window => this.setState({ log_window })}
+                                    onChange={(_event, log_window) => this.setState({ log_window })}
                                     label={_("Window Resize")}
                                 />
                             </FormGroup>
@@ -256,7 +262,7 @@ class GeneralConfig extends React.Component {
                                     type="number"
                                     step="1"
                                     value={this.state.limit_rate}
-                                    onChange={limit_rate => this.setState({ limit_rate })}
+                                    onChange={(_event, value) => this.handleInputChange("limit_rate", _event, value)}
                                 />
                             </FormGroup>
                             <FormGroup label={_("Burst, bytes")}>
@@ -265,14 +271,14 @@ class GeneralConfig extends React.Component {
                                     type="number"
                                     step="1"
                                     value={this.state.limit_burst}
-                                    onChange={limit_burst => this.setState({ limit_burst })}
+                                    onChange={(_event, value) => this.handleInputChange("limit_burst", _event, value)}
                                 />
                             </FormGroup>
                             <FormGroup label={_("Logging Limit Action")}>
                                 <FormSelect
                                     id="limit_action"
                                     value={this.state.limit_action}
-                                    onChange={limit_action => this.setState({ limit_action })}
+                                    onChange={(_event, value) => this.handleInputChange("limit_action", _event, value)}
                                 >
                                     {[
                                         { value: "", label: "" },
@@ -292,23 +298,22 @@ class GeneralConfig extends React.Component {
                                 <TextInput
                                     id="file_path"
                                     value={this.state.file_path}
-                                    onChange={file_path => this.setState({ file_path })}
+                                    onChange={(_event, value) => this.handleInputChange("file_path", _event, value)}
                                 />
                             </FormGroup>
                             <FormGroup label={_("Syslog Facility")}>
                                 <TextInput
                                     id="syslog_facility"
                                     value={this.state.syslog_facility}
-                                    onChange={syslog_facility =>
-                                        this.setState({ syslog_facility })}
+                                    onChange={(_event, value) => this.handleInputChange("syslog_facility", _event, value)}
+
                                 />
                             </FormGroup>
                             <FormGroup label={_("Syslog Priority")}>
                                 <FormSelect
                                     id="syslog_priority"
                                     value={this.state.syslog_priority}
-                                    onChange={syslog_priority =>
-                                        this.setState({ syslog_priority })}
+                                    onChange={(_event, value) => this.handleInputChange("syslog_priority", _event, value)}
                                 >
                                     {[
                                         { value: "", label: "" },
@@ -326,8 +331,8 @@ class GeneralConfig extends React.Component {
                                 <FormSelect
                                     id="journal_priority"
                                     value={this.state.journal_priority}
-                                    onChange={journal_priority =>
-                                        this.setState({ journal_priority })}
+                                    onChange={(_event, value) => this.handleInputChange("journal_priority", _event, value)}
+
                                 >
                                     {[
                                         { value: "", label: "" },
@@ -345,8 +350,7 @@ class GeneralConfig extends React.Component {
                                 <Checkbox
                                     id="journal_augment"
                                     isChecked={this.state.journal_augment}
-                                    onChange={journal_augment =>
-                                        this.setState({ journal_augment })}
+                                    onChange={(_event, journal_augment) => this.setState({ journal_augment })}
                                     label={_("Augment")}
                                 />
                             </FormGroup>
@@ -354,8 +358,7 @@ class GeneralConfig extends React.Component {
                                 <FormSelect
                                     id="writer"
                                     value={this.state.writer}
-                                    onChange={writer =>
-                                        this.setState({ writer })}
+                                    onChange={(_event, value) => this.handleInputChange("writer", _event, value)}
                                 >
                                     {[
                                         { value: "", label: "" },
@@ -385,17 +388,17 @@ class GeneralConfig extends React.Component {
                     )
                     : (
                         <Bullseye>
-                            <EmptyState variant={EmptyStateVariant.small}>
-                                <EmptyStateIcon
+                            <EmptyState variant={EmptyStateVariant.sm}>
+                                <EmptyStateHeader
+                                titleText={<>{_("There is no configuration file of tlog present in your system.")}</>}
+                                icon={
+                                    <EmptyStateIcon
                                 icon={ExclamationCircleIcon}
                                 color={global_danger_color_200.value}
+                                    />
+                                } headingLevel="h4"
                                 />
-                                <Title headingLevel="h4" size="lg">
-                                    {_("There is no configuration file of tlog present in your system.")}
-                                </Title>
-                                <Title headingLevel="h4" size="lg">
-                                    {_("Please, check the /etc/tlog/tlog-rec-session.conf or if tlog is installed.")}
-                                </Title>
+                                <EmptyStateHeader titleText={<>{_("Please, check the /etc/tlog/tlog-rec-session.conf or if tlog is installed.")}</>} headingLevel="h4" />
                                 <EmptyStateBody>
                                     {this.state.file_error}
                                 </EmptyStateBody>
@@ -416,6 +419,7 @@ class SssdConfig extends React.Component {
     constructor(props) {
         super(props);
         this.handleSubmit = this.handleSubmit.bind(this);
+        this.handleInputChange = this.handleInputChange.bind(this);
         this.confSave = this.confSave.bind(this);
         this.restartSSSD = this.restartSSSD.bind(this);
         this.file = null;
@@ -543,6 +547,12 @@ class SssdConfig extends React.Component {
         e.preventDefault();
     }
 
+    handleInputChange(name, value) {
+        const state = {};
+        state[name] = value;
+        this.setState(state);
+    }
+
     render() {
         const form = (
             <Form isHorizontal>
@@ -550,7 +560,7 @@ class SssdConfig extends React.Component {
                     <FormSelect
                         id="scope"
                         value={this.state.scope}
-                        onChange={scope => this.setState({ scope })}
+                        onChange={(_event, value) => this.handleInputChange("scope", _event, value)}
                     >
                         {[
                             { value: "none", label: _("None") },
@@ -571,14 +581,14 @@ class SssdConfig extends React.Component {
                         <TextInput
                             id="users"
                             value={this.state.users}
-                            onChange={users => this.setState({ users })}
+                            onChange={(_event, value) => this.handleInputChange("users", _event, value)}
                         />
                     </FormGroup>
                     <FormGroup label={_("Groups")}>
                         <TextInput
                             id="groups"
                             value={this.state.groups}
-                            onChange={groups => this.setState({ groups })}
+                            onChange={(_event, value) => this.handleInputChange("groups", _event, value)}
                         />
                     </FormGroup>
                 </>}
@@ -588,14 +598,14 @@ class SssdConfig extends React.Component {
                         <TextInput
                             id="exclude_users"
                             value={this.state.exclude_users}
-                            onChange={exclude_users => this.setState({ exclude_users })}
+                            onChange={(_event, value) => this.handleInputChange("exclude_users", _event, value)}
                         />
                     </FormGroup>
                     <FormGroup label={_("Exclude Groups")}>
                         <TextInput
                             id="exclude_groups"
                             value={this.state.exclude_groups}
-                            onChange={exclude_groups => this.setState({ exclude_groups })}
+                            onChange={(_event, value) => this.handleInputChange("exclude_groups", _event, value)}
                         />
                     </FormGroup>
                 </>}

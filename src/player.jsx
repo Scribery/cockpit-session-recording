@@ -692,7 +692,7 @@ class Search extends React.Component {
                         id="search_rec"
                         type="search"
                         value={this.state.search}
-                        onChange={value => this.handleInputChange("search", value)}
+                        onChange={(_event, value) => this.handleInputChange("search", value)}
                     />
                     <Button
                         variant="control"
@@ -1357,7 +1357,7 @@ export class Player extends React.Component {
         );
 
         const visualControls = (
-            <ToolbarGroup variant="icon-button-group" alignment={{ default: 'alignRight' }}>
+            <ToolbarGroup variant="icon-button-group" align={{ default: 'alignRight' }}>
                 <ToolbarItem>
                     <Button
                     variant="plain"

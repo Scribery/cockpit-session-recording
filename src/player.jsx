@@ -37,7 +37,7 @@ import {
     Toolbar,
     ToolbarContent,
     ToolbarItem,
-    ToolbarGroup,
+    ToolbarGroup, InputGroupItem,
 } from '@patternfly/react-core';
 import {
     ArrowRightIcon,
@@ -688,24 +688,30 @@ class Search extends React.Component {
         return (
             <ToolbarItem>
                 <InputGroup>
-                    <TextInput
-                        id="search_rec"
-                        type="search"
-                        value={this.state.search}
-                        onChange={(_event, value) => this.handleInputChange("search", value)}
-                    />
-                    <Button
-                        variant="control"
-                        onClick={this.handleSearchSubmit}
-                    >
-                        <SearchIcon />
-                    </Button>
-                    <Button
-                        variant="control"
-                        onClick={this.handleClearSearchResults}
-                    >
-                        <MinusIcon />
-                    </Button>
+                    <InputGroupItem isFill>
+                        <TextInput
+                            id="search_rec"
+                            type="search"
+                            value={this.state.search}
+                            onChange={(_event, value) => this.handleInputChange("search", value)}
+                        />
+                    </InputGroupItem>
+                    <InputGroupItem>
+                        <Button
+                            variant="control"
+                            onClick={this.handleSearchSubmit}
+                        >
+                            <SearchIcon />
+                        </Button>
+                    </InputGroupItem>
+                    <InputGroupItem>
+                        <Button
+                            variant="control"
+                            onClick={this.handleClearSearchResults}
+                        >
+                            <MinusIcon />
+                        </Button>
+                    </InputGroupItem>
                 </InputGroup>
                 <ToolbarItem>
                     {this.state.items}

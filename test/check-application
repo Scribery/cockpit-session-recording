@@ -72,7 +72,7 @@ class TestApplication(testlib.MachineCase):
         b.wait_in_text(self._term_line(25), "exit")
 
     def testFastforwardControls(self):
-        progress = ".pf-c-progress__indicator"
+        progress = ".pf-v5-c-progress__indicator"
 
         b, _ = self._login()
         self._sel_rec('rec1')
@@ -117,7 +117,7 @@ class TestApplication(testlib.MachineCase):
         b.click("#player-speed-down")
         b.wait_text("#player-speed", "/16")
         # restore speed
-        b.click(".pf-c-chip .pf-c-button")
+        b.click(".pf-v5-c-chip .pf-v5-c-button")
         b.click("#player-speed-down")
         b.wait_text("#player-speed", "/2")
 
@@ -297,12 +297,12 @@ class TestApplication(testlib.MachineCase):
         m.execute("timedatectl set-timezone America/New_York")
         # select the recording with the extra logs
         self._sel_rec('rec2')
-        b.click("#btn-logs-view .pf-c-expandable-section__toggle")
+        b.click("#btn-logs-view .pf-v5-c-expandable-section__toggle")
         # fast forward until the end
         while "exit" not in b.text(self._term_line(22)):
             b.click("#player-skip-frame")
         # check for extra log entries
-        b.wait_visible(".pf-c-data-list:contains('authentication failure')")
+        b.wait_visible(".pf-v5-c-data-list:contains('authentication failure')")
 
     def testZoomSpeedControls(self):
         b, m = self._login()
@@ -337,7 +337,7 @@ class TestApplication(testlib.MachineCase):
                 # enter the search term and wait for the results to return
                 b.set_input_text(inp, term)
                 time.sleep(5)
-                self.assertEqual(b.text(".pf-c-table").count("contractor"), occ)
+                self.assertEqual(b.text(".pf-v5-c-table").count("contractor"), occ)
 
     def testSearch(self):
         self._filter(

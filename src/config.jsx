@@ -208,14 +208,14 @@ class GeneralConfig extends React.Component {
                                 <TextInput
                                     id="shell"
                                     value={this.state.shell}
-                                    onChange={(_event, value) => this.handleInputChange("shell", _event, value)}
+                                    onChange={(_event, value) => this.handleInputChange("shell", value)}
                                 />
                             </FormGroup>
                             <FormGroup label={_("Notice")}>
                                 <TextInput
                                     id="notice"
                                     value={this.state.notice}
-                                    onChange={(_event, value) => this.handleInputChange("notice", _event, value)}
+                                    onChange={(_event, value) => this.handleInputChange("notice", value)}
                                 />
                             </FormGroup>
                             <FormGroup label={_("Latency")}>
@@ -224,7 +224,7 @@ class GeneralConfig extends React.Component {
                                     type="number"
                                     step="1"
                                     value={this.state.latency}
-                                    onChange={(_event, value) => this.handleInputChange("latency", _event, value)}
+                                    onChange={(_event, value) => this.handleInputChange("latency", value)}
                                 />
                             </FormGroup>
                             <FormGroup label={_("Payload Size, bytes")}>
@@ -233,7 +233,7 @@ class GeneralConfig extends React.Component {
                                     type="number"
                                     step="1"
                                     value={this.state.payload}
-                                    onChange={(_event, value) => this.handleInputChange("payload", _event, value)}
+                                    onChange={(_event, value) => this.handleInputChange("payload", value)}
                                 />
                             </FormGroup>
                             <FormGroup label={_("Logging")}>
@@ -262,7 +262,7 @@ class GeneralConfig extends React.Component {
                                     type="number"
                                     step="1"
                                     value={this.state.limit_rate}
-                                    onChange={(_event, value) => this.handleInputChange("limit_rate", _event, value)}
+                                    onChange={(_event, value) => this.handleInputChange("limit_rate", value)}
                                 />
                             </FormGroup>
                             <FormGroup label={_("Burst, bytes")}>
@@ -271,14 +271,14 @@ class GeneralConfig extends React.Component {
                                     type="number"
                                     step="1"
                                     value={this.state.limit_burst}
-                                    onChange={(_event, value) => this.handleInputChange("limit_burst", _event, value)}
+                                    onChange={(_event, value) => this.handleInputChange("limit_burst", value)}
                                 />
                             </FormGroup>
                             <FormGroup label={_("Logging Limit Action")}>
                                 <FormSelect
                                     id="limit_action"
                                     value={this.state.limit_action}
-                                    onChange={(_event, value) => this.handleInputChange("limit_action", _event, value)}
+                                    onChange={(_event, value) => this.handleInputChange("limit_action", value)}
                                 >
                                     {[
                                         { value: "", label: "" },
@@ -298,14 +298,14 @@ class GeneralConfig extends React.Component {
                                 <TextInput
                                     id="file_path"
                                     value={this.state.file_path}
-                                    onChange={(_event, value) => this.handleInputChange("file_path", _event, value)}
+                                    onChange={(_event, value) => this.handleInputChange("file_path", value)}
                                 />
                             </FormGroup>
                             <FormGroup label={_("Syslog Facility")}>
                                 <TextInput
                                     id="syslog_facility"
                                     value={this.state.syslog_facility}
-                                    onChange={(_event, value) => this.handleInputChange("syslog_facility", _event, value)}
+                                    onChange={(_event, value) => this.handleInputChange("syslog_facility", value)}
 
                                 />
                             </FormGroup>
@@ -313,7 +313,7 @@ class GeneralConfig extends React.Component {
                                 <FormSelect
                                     id="syslog_priority"
                                     value={this.state.syslog_priority}
-                                    onChange={(_event, value) => this.handleInputChange("syslog_priority", _event, value)}
+                                    onChange={(_event, value) => this.handleInputChange("syslog_priority", value)}
                                 >
                                     {[
                                         { value: "", label: "" },
@@ -331,7 +331,7 @@ class GeneralConfig extends React.Component {
                                 <FormSelect
                                     id="journal_priority"
                                     value={this.state.journal_priority}
-                                    onChange={(_event, value) => this.handleInputChange("journal_priority", _event, value)}
+                                    onChange={(_event, value) => this.handleInputChange("journal_priority", value)}
 
                                 >
                                     {[
@@ -358,7 +358,7 @@ class GeneralConfig extends React.Component {
                                 <FormSelect
                                     id="writer"
                                     value={this.state.writer}
-                                    onChange={(_event, value) => this.handleInputChange("writer", _event, value)}
+                                    onChange={(_event, value) => this.handleInputChange("writer", value)}
                                 >
                                     {[
                                         { value: "", label: "" },
@@ -560,7 +560,7 @@ class SssdConfig extends React.Component {
                     <FormSelect
                         id="scope"
                         value={this.state.scope}
-                        onChange={(_event, value) => this.handleInputChange("scope", _event, value)}
+                        onChange={(_event, value) => this.handleInputChange("scope", value)}
                     >
                         {[
                             { value: "none", label: _("None") },
@@ -581,14 +581,14 @@ class SssdConfig extends React.Component {
                         <TextInput
                             id="users"
                             value={this.state.users}
-                            onChange={(_event, value) => this.handleInputChange("users", _event, value)}
+                            onChange={(_event, value) => this.handleInputChange("users", value)}
                         />
                     </FormGroup>
                     <FormGroup label={_("Groups")}>
                         <TextInput
                             id="groups"
                             value={this.state.groups}
-                            onChange={(_event, value) => this.handleInputChange("groups", _event, value)}
+                            onChange={(_event, value) => this.handleInputChange("groups", value)}
                         />
                     </FormGroup>
                 </>}
@@ -598,14 +598,14 @@ class SssdConfig extends React.Component {
                         <TextInput
                             id="exclude_users"
                             value={this.state.exclude_users}
-                            onChange={(_event, value) => this.handleInputChange("exclude_users", _event, value)}
+                            onChange={(_event, value) => this.handleInputChange("exclude_users", value)}
                         />
                     </FormGroup>
                     <FormGroup label={_("Exclude Groups")}>
                         <TextInput
                             id="exclude_groups"
                             value={this.state.exclude_groups}
-                            onChange={(_event, value) => this.handleInputChange("exclude_groups", _event, value)}
+                            onChange={(_event, value) => this.handleInputChange("exclude_groups", value)}
                         />
                     </FormGroup>
                 </>}

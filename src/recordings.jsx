@@ -861,7 +861,7 @@ export default class View extends React.Component {
                                 placeholder={_("Filter since")}
                                 value={this.state.date_since}
                                 type="search"
-                                onChange={(_event, value) => this.handleInputChange("date_since", _event, value)}
+                                onChange={(_event, value) => this.handleInputChange("date_since", value)}
                             />
                         </ToolbarItem>
                     </ToolbarGroup>
@@ -873,7 +873,7 @@ export default class View extends React.Component {
                                 placeholder={_("Filter until")}
                                 value={this.state.date_until}
                                 type="search"
-                                onChange={(_event, value) => this.handleInputChange("date_until", _event, value)}
+                                onChange={(_event, value) => this.handleInputChange("date_until", value)}
                             />
                         </ToolbarItem>
                     </ToolbarGroup>
@@ -885,7 +885,7 @@ export default class View extends React.Component {
                                 placeholder={_("Filter by content")}
                                 value={this.state.search}
                                 type="search"
-                                onChange={(_event, value) => this.handleInputChange("search", _event, value)}
+                                onChange={(_event, value) => this.handleInputChange("search", value)}
                             />
                         </ToolbarItem>
                     </ToolbarGroup>
@@ -897,7 +897,7 @@ export default class View extends React.Component {
                                 placeholder={_("Filter by username")}
                                 value={this.state.username}
                                 type="search"
-                                onChange={(_event, value) => this.handleInputChange("username", _event, value)}
+                                onChange={(_event, value) => this.handleInputChange("username", value)}
                             />
                         </ToolbarItem>
                     </ToolbarGroup>
@@ -910,7 +910,7 @@ export default class View extends React.Component {
                                 placeholder={_("Filter by hostname")}
                                 value={this.state.hostname}
                                 type="search"
-                                onChange={(_event, value) => this.handleInputChange("hostname", _event, value)}
+                                onChange={(_event, value) => this.handleInputChange("hostname", value)}
                             />
                         </ToolbarItem>
                     </ToolbarGroup>}

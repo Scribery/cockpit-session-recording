@@ -266,6 +266,9 @@ class TestApplication(testlib.MachineCase):
         self.assertEqual(conf["session_recording"]["scope"], "all")
         self.assertEqual(conf["session_recording"]["exclude_users"], "testuser1")
         self.assertEqual(conf["session_recording"]["exclude_groups"], "testgroup1")
+        self.assertEqual(conf["domain/nssfiles"]["id_provider"], "proxy")
+        self.assertEqual(conf["domain/nssfiles"]["proxy_lib_name"], "files")
+        self.assertEqual(conf["domain/nssfiles"]["proxy_pam_target"], "sssd-shadowutils")
         conf.read_file(open(test_none_file, "r"))
         self.assertEqual(conf["session_recording"]["scope"], "none")
 

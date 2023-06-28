@@ -1,6 +1,7 @@
 # Cockpit Session Recording
 
 Module for [Cockpit](http://www.cockpit-project.org) which provides session recording 
+
 configuration and playback. 
 It requires [tlog](https://github.com/Scribery/tlog) to record terminal sessions. 
 SSSD is required to manage which users / groups are recorded. Systemd Journal is used to store recordings.

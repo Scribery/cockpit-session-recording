@@ -246,7 +246,7 @@ const PacketBuffer = class {
             this.reportError("\"" + field + "\" field is missing");
         }
         const value = object[field];
-        if (typeof (value) != typeof (type)) {
+        if (typeof (value) !== typeof (type)) {
             this.reportError("invalid \"" + field + "\" field type: " + typeof (value));
         }
         return value;

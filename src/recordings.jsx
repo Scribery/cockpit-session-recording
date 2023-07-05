@@ -137,7 +137,7 @@ function LogElement(props) {
     const cursor = entry.__CURSOR;
     const entry_timestamp = parseInt(entry.__REALTIME_TIMESTAMP / 1000);
 
-    const timeClick = function(_e) {
+    const timeClick = (_e) => {
         const ts = entry_timestamp - start;
         if (ts > 0) {
             props.onJumpToTs(ts);

@@ -391,7 +391,7 @@ class TestApplication(testlib.MachineCase):
         )
 
     def testAppMenu(self):
-        srrow = ".app-list .pf-c-data-list__item-row:" \
+        srrow = ".app-list .pf-v5-c-data-list__item-row:" \
                 "contains('Session Recording')"
         srbut = "{} button:contains('Session Recording')" \
                 "".format(srrow)

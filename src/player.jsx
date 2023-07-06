@@ -19,6 +19,7 @@
 import React from 'react';
 import './player.css';
 import { Terminal as Term } from 'xterm';
+import { CanvasAddon } from 'xterm-addon-canvas';
 import {
     Alert,
     AlertGroup,
@@ -1203,6 +1204,7 @@ export class Player extends React.Component {
         }
         /* Open the terminal */
         this.state.term.open(this.termRef.current);
+        this.state.term.loadAddon(new CanvasAddon());
         window.setInterval(this.sync, 100);
         /* Reset playback */
         this.reset();

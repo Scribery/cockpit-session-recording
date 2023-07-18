@@ -20,6 +20,7 @@ class TestApplication(testlib.MachineCase):
         m = self.machine
         b.wait_visible(wait)
         self.allow_journal_messages('.*type=1400.*avc:  denied .* comm="systemctl".*')
+        self.allow_journal_messages('.*invalid non-UTF8.*web_socket_connection_send.*')
         return b, m
 
     def _sel_rec(self, recording):

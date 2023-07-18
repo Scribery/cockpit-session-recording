@@ -6,7 +6,7 @@
   <summary>Session Recording module for Cockpit</summary>
   <description>
     <p>
-      Provides Session Recoridng moduel for Cockpit. Provides list of recorded by tlog terminal sessions from Journal.
+      Provides Session Recording module for Cockpit. Provides list of recorded by tlog terminal sessions from Journal.
       Allows to play them in a player with various controls. Shows correlated logs which happened during session.
     </p>
   </description>

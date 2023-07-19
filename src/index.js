@@ -25,7 +25,6 @@ import { createRoot } from 'react-dom/client';
 import { Application } from './app.jsx';
 import './app.scss';
 
-document.addEventListener("DOMContentLoaded", function () {
-    const root = createRoot(document.getElementById('app'));
-    root.render(<Application />);
+document.addEventListener("DOMContentLoaded", () => {
+    createRoot(document.getElementById("app")).render(<Application />);
 });

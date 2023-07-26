@@ -2,7 +2,7 @@ Name: cockpit-session-recording
 Version: %{VERSION}
 Release: 1%{?dist}
 Summary: Cockpit Session Recording
-License: LGPL-2.0-or-later
+License: LGPL-2.1-or-later
 URL:     https://github.com/Scribery/%{name}
 Source:  https://github.com/Scribery/%{name}/releases/download/%{version}/%{name}-%{version}.tar.xz
 

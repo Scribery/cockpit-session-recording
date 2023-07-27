@@ -764,21 +764,20 @@ export class Player extends React.Component {
         this.wrapperRef = React.createRef();
         this.termRef = React.createRef();
         this.handleProgressClick = this.handleProgressClick.bind(this);
+        this.term = new Term({
+            cols: 80,
+            rows: 25,
+            screenKeys: true,
+            useStyle: true,
+            /* Exposes the xterm-accessibility-tree */
+            screenReaderMode: true,
+        });
 
         this.state = {
             cols:               80,
             rows:               25,
             title:              _("Player"),
             paused:             true,
-            /* Terminal */
-            term:               new Term({
-                cols: 80,
-                rows: 25,
-                screenKeys: true,
-                useStyle: true,
-                /* Exposes the xterm-accessibility-tree */
-                screenReaderMode: true,
-            }),
             /* Speed exponent */
             speedExp:           0,
             scale_initial:      1,
@@ -837,7 +836,7 @@ export class Player extends React.Component {
         this.clearTimeout();
 
         /* Reset the terminal */
-        this.state.term.reset();
+        this.term.reset();
 
         /* Move to beginning of buffer */
         this.pktIdx = 0;
@@ -903,8 +902,8 @@ export class Player extends React.Component {
 
     _transform(width, height) {
         const relation = Math.min(
-            this.state.containerWidth / this.state.term.element.offsetWidth,
-            this.containerHeight / this.state.term.element.offsetHeight
+            this.state.containerWidth / this.term.element.offsetWidth,
+            this.containerHeight / this.term.element.offsetHeight
         );
         this.setState({
             term_top_style: "50%",
@@ -1006,9 +1005,9 @@ export class Player extends React.Component {
             if (this.pkt.is_io && !this.pkt.is_output) {
                 this.sendInput(this.pkt);
             } else if (this.pkt.is_io) {
-                this.state.term.write(this.pkt.io);
+                this.term.write(this.pkt.io);
             } else {
-                this.state.term.resize(this.pkt.width, this.pkt.height);
+                this.term.resize(this.pkt.width, this.pkt.height);
                 if (!this.state.scale_lock) {
                     this._transform(this.pkt.width, this.pkt.height);
                 }
@@ -1193,7 +1192,7 @@ export class Player extends React.Component {
     }
 
     componentDidMount() {
-        this.state.term.onData((data) => {
+        this.term.onData((data) => {
             this.handleTitleChange();
         });
 
@@ -1203,8 +1202,8 @@ export class Player extends React.Component {
             this.setState({ containerWidth: this.wrapperRef.offsetWidth });
         }
         /* Open the terminal */
-        this.state.term.open(this.termRef.current);
-        this.state.term.loadAddon(new CanvasAddon());
+        this.term.open(this.termRef.current);
+        this.term.loadAddon(new CanvasAddon());
         window.setInterval(this.sync, 100);
         /* Reset playback */
         this.reset();
@@ -1489,7 +1488,7 @@ export class Player extends React.Component {
                             <div
                                 ref={this.termRef}
                                 className="console-ct"
-                                key={this.state.term}
+                                key={this.term}
                                 style={style}
                             />
                         </div>
@@ -1505,6 +1504,6 @@ export class Player extends React.Component {
     componentWillUnmount() {
         this.buf.stop();
         window.removeEventListener("keydown", this.handleKeyDown, false);
-        this.state.term.dispose();
+        this.term.dispose();
     }
 }

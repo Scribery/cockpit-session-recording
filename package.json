@@ -44,12 +44,12 @@
     "stylelint-formatter-pretty": "^3.2.0"
   },
   "dependencies": {
-    "@patternfly/patternfly": "5.0.0-alpha.64",
-    "@patternfly/react-core": "5.0.0-alpha.115",
-    "@patternfly/react-icons": "5.0.0-alpha.19",
-    "@patternfly/react-styles": "5.0.0-alpha.16",
-    "@patternfly/react-table": "^5.0.0-alpha.118",
-    "@patternfly/react-tokens": "^5.0.0-alpha.14",
+    "@patternfly/patternfly": "5.0.2",
+    "@patternfly/react-core": "5.0.0",
+    "@patternfly/react-icons": "5.0.0",
+    "@patternfly/react-styles": "5.0.0",
+    "@patternfly/react-table": "5.0.0",
+    "@patternfly/react-tokens": "5.0.0",
     "buffer": "^6.0.3",
     "comment-json": "^4.2.3",
     "date-fns": "^2.29.3",

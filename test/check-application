@@ -42,11 +42,12 @@ class TestApplication(testlib.MachineCase):
           exit
 
         binaryrec:
-          cat /usr/bin/gzip
+          mc
+          exit
         '''
         recordings = {'rec1': '0f25700a28c44b599869745e5fda8b0c-7106-121e79',
-		      'rec2': '0f25700a28c44b599869745e5fda8b0c-7623-135541',
-		      'binaryrec': '6c652ee938b3485894dbacbb8c7c2c61-5a4-38a5'}
+                     'rec2': '0f25700a28c44b599869745e5fda8b0c-7623-135541',
+                     'binaryrec': '976e4ef1d66741848ed35f7600b94c5c-1a0f-c1ae'}
 
         page = recordings[recording]
 
@@ -66,8 +67,7 @@ class TestApplication(testlib.MachineCase):
         self._sel_rec('binaryrec')
         b.click("#player-play-pause")
         time.sleep(5)
-        b.wait_in_text(self._term_line(21), "�")
-        b.wait_in_text(self._term_line(25), "exit")
+        b.wait_in_text(self._term_line(4), "exit")
 
     def testFastforwardControls(self):
         progress = ".pf-v5-c-progress__indicator"

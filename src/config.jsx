@@ -430,6 +430,7 @@ class SssdConfig extends React.Component {
             exclude_groups: "",
             groups: "",
             submitting: false,
+            authselectWithTlog: undefined
         };
     }
 
@@ -445,8 +446,10 @@ class SssdConfig extends React.Component {
 
     confSave(obj) {
         const chmod_cmd = ["chmod", "600", "/etc/sssd/conf.d/sssd-session-recording.conf"];
-        /* Update nsswitch, this will fail on RHEL8/F34 and lower as 'with-files-domain' feature is not added there */
-        const authselect_cmd = ["authselect", "select", "sssd", "with-files-domain", "--force"];
+        let authselect_cmd = ["authselect", "select", "sssd", "with-files-domain", "--force"];
+        if (this.state.authselectWithTlog) {
+            authselect_cmd = ["authselect", "select", "sssd", "with-tlog", "--force"];
+        }
         this.setState({ submitting: true });
         this.file.replace(obj)
                 .then(tag => {
@@ -500,6 +503,19 @@ class SssdConfig extends React.Component {
                 })
                 .catch(error => {
                     console.log("Error: " + error);
+                });
+
+        /* Check authselect features */
+        cockpit.spawn(['authselect', 'list-features', 'sssd'], { err: 'message' })
+                .then(features => {
+                    if (features.toLowerCase().includes('with-tlog')) {
+                        this.setState({ authselectWithTlog: true });
+                    } else {
+                        this.setState({ authselectWithTlog: false });
+                    }
+                })
+                .catch(e => {
+                    console.log("Error getting authselect features: " + e.toString());
                 });
     }
 

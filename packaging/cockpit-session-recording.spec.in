@@ -17,6 +17,7 @@ BuildRequires: libappstream-glib-devel
 
 Requires: cockpit-system
 Requires: tlog
+Requires: sssd-proxy
 
 %{NPM_PROVIDES}
 

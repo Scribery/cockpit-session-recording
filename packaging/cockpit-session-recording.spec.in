@@ -40,6 +40,79 @@ appstream-util validate-relax --nonet %{buildroot}/%{_datadir}/metainfo/*
 %{_datadir}/metainfo/*
 
 %changelog
+* Thu Feb 1 2024 Packit <hello@packit.dev> - 15-1
+- Config: Update to authselect with-tlog feature
+- stylelint: handle stylelint-scss deprecation
+- Add ruff configuration
+- package.json: drop flowtype plugin
+- package.json: drop po2json
+- package.json: document the required nodejs version
+- fmf: Plumb through $TEST_* variables for unexpected messages
+- tests: Use mc for testPlayBinary
+- package.json: drop deprecated eslint-plugin-standard
+- Revert "build: add support for /pybridge scenario"
+- Player: Stop making the Terminal object state
+- build.js: support flags
+- packaging: Update spec License: to SPDX format
+- build.js: Fix LINT env variable check
+- Tests: Allow charset journal messages
+- Update to the new root creation function
+- package.json: Bump stylelint to 15
+- test: add check for sssd config id_provider proxy
+- Tests: Allow invalid non-UTF8 journal messages
+- Add xterm-canvas-addon dependency for rendering
+- Minor Eslint fixes
+- Tests: Update data list to PF5 for testAppMenu
+- Update org.cockpit-project.session-recording.metainfo.xml
+- Makefile: bump our test/common dependency
+- patternfly-5-overrides should be auto-imported by the page.scss file
+- Drop obsolete pf-m-redhat-font class
+
+* Wed May 17 2023 Packit <hello@packit.dev> - 14-1
+- Upgrade to PatternFly 5 Alpha
+- Makefile: Update Cockpit lib to da5abbb4245b0455cc8b610efe01e684
+- package.json: Pin down versions of @patternfly/react-{styles,icons}
+- Makefile: Update Cockpit lib to 947f1753867e3924b9617aaace936225
+- Makefile: Fix watch dependencies
+- Update release.yml
+- Automate the release process
+
+* Mon May 23 2022 Justin Stephenson <jstephen@redhat.com> - 12-1
+- Drop moment.js dependency
+- Tests: Assert pause state with a later command in rec1
+- CI: Update image to ubuntu 20.04
+
+* Mon Apr 18 2022 Justin Stephenson <jstephen@redhat.com> - 11.1
+- Enable SSSD files domain unconditionally
+
+* Wed Nov 17 2021 Justin Stephenson <jstephen@redhat.com> - 11-1
+- Avoid crash in unmount if journal is null
+- Sync Makefile closer to starter-kit
+- Use current babel/eslint integration
+- Use Flex layout for spacing the two config cards in the config page
+- Use Page/PageSection/Breadcrumb patternfly components
+- Move to xz dist tarballs
+- Remove unused slider.html file
+- package.json: explicitely depend on @patternfly/react-icons
+- webpack: Use relative resolve path for npm 7 compatibility
+- package.json: update patternfly packages
+- package.json: use sass instead of node-sass
+- Fetch pkg/lib automatically from cockpit instead of keeping a local copy
+- Update Docker image and TEST_OS run to Fedora 35
+- Tests: Test SSSD exclude_users and exclude_groups
+- Config: Add SSSD exclude_users and exclude_groups
+- TESTS: Fix testSessionRecordingConf cleanup issue
+- TESTS: Restart SSSD after restoring config
+
+* Wed Jul 21 2021 Justin Stephenson <jstephen@redhat.com> - 9-1
+- Release v9
+- Tests: Fix RHEL9 filter test timing failures
+
+* Wed Jul 14 2021 Justin Stephenson <jstephen@redhat.com> - 8-1
+- Release v8
+- Throttle journalctl restarts
+- Minor CI fixes
+
 * Wed Jan 13 2021 Justin Stephenson <jstephen@redhat.com> - 7-1
 - Release v7
 - Remove bots sudo rm from Makefile

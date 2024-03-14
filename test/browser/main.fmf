@@ -3,12 +3,9 @@ require:
   - tlog
   - cockpit-ws
   - cockpit-system
-  - cockpit-packagekit
-  - bzip2
-  - git-core
-  - libvirt-python3
-  - make
-  - nodejs
-  - python3
+  - podman
+  - cockpit-ws
+  - cockpit-system
+  - glibc-langpack-de
 test: ./browser.sh
 duration: 30m

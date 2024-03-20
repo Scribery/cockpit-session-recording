@@ -18,7 +18,7 @@
     "stylelint:fix": "stylelint --fix src/*{.css,scss}"
   },
   "devDependencies": {
-    "argparse": "^2.0.1",
+    "argparse": "2.0.1",
     "chrome-remote-interface": "0.33.0",
     "esbuild": "0.19.12",
     "esbuild-plugin-copy": "2.1.1",
@@ -32,11 +32,11 @@
     "eslint-plugin-import": "2.29.1",
     "eslint-plugin-node": "11.1.0",
     "eslint-plugin-promise": "6.1.1",
-    "eslint-plugin-react": "^7.29.4",
-    "eslint-plugin-react-hooks": "^4.4.0",
+    "eslint-plugin-react": "7.29.4",
+    "eslint-plugin-react-hooks": "4.4.0",
     "gettext-parser": "7.0.1",
-    "htmlparser": "^1.7.7",
-    "jed": "^1.1.1",
+    "htmlparser": "1.7.7",
+    "jed": "1.1.1",
     "qunit": "2.20.0",
     "sass": "1.70.0",
     "stylelint": "15.11.0",
@@ -51,15 +51,15 @@
     "@patternfly/react-styles": "5.2.0",
     "@patternfly/react-table": "5.2.0",
     "@patternfly/react-tokens": "5.2.0",
-    "buffer": "^6.0.3",
-    "comment-json": "^4.2.3",
-    "date-fns": "^2.29.3",
-    "ini": "^4.1.0",
-    "jquery": "^3.6.4",
+    "buffer": "6.0.3",
+    "comment-json": "4.2.3",
+    "date-fns": "2.29.3",
+    "ini": "4.1.0",
+    "jquery": "3.6.4",
     "react": "18.2.0",
     "react-dom": "18.2.0",
-    "throttle-debounce": "^5.0.0",
+    "throttle-debounce": "5.0.0",
     "xterm": "5.1.0",
-    "xterm-addon-canvas": "^0.4.0"
+    "xterm-addon-canvas": "0.4.0"
   }
 }

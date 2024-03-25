@@ -30,6 +30,9 @@ fi
 # Chromium sometimes gets OOM killed on testing farm
 export TEST_BROWSER=firefox
 
+# Certain CSR Tests rely on timezone filtering
+export TZ="America/New_York"
+
 EXCLUDES=""
 
 # make it easy to check in logs

@@ -1,5 +1,9 @@
 set -eux
 
+# CSR specific
+export TESTS="$(realpath $(dirname "$0"))"
+export FILES="$(realpath $TESTS/../files)"
+
 cd "${0%/*}/../.."
 
 # HACK: https://bugzilla.redhat.com/show_bug.cgi?id=2033020
@@ -24,6 +28,10 @@ su -c 'echo foobar | sudo --stdin whoami' - admin
 
 # disable core dumps, we rather investigate them upstream where test VMs are accessible
 echo core > /proc/sys/kernel/core_pattern
+
+# CSR - Copy pre-recorded sessions
+cp "$FILES/1.journal" /run/log/journal
+cp "$FILES/binary-rec.journal" /run/log/journal
 
 sh test/vm.install
 

@@ -11,3 +11,6 @@ if type firewall-cmd >/dev/null 2>&1; then
     firewall-cmd --add-service=cockpit --permanent
 fi
 systemctl enable cockpit.socket
+
+# CSR needed for testAppMenu
+dnf install -y cockpit-packagekit glibc-langpack-en

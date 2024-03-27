@@ -261,12 +261,10 @@ class Logs extends React.Component {
                 delete options.since;
             }
 
-            const self = this;
-            this.journalCtl = journal.journalctl(matches, options)
-                    .fail(this.journalctlError)
-                    .done(function(data) {
-                        self.journalctlIngest(data);
-                    });
+            this.journalCtl = journal.journalctl(matches, options);
+            this.journalCtl
+                    .then(data => this.journalctlIngest(data))
+                    .catch(this.journalctlError);
         }
     }
 
@@ -727,9 +725,10 @@ export default class View extends React.Component {
         }
 
         this.journalctlRecordingID = this.state.recordingID;
-        this.journalctl = journal.journalctl(matches, options)
-                .fail(this.journalctlError)
-                .stream(this.journalctlIngest);
+        this.journalctl = journal.journalctl(matches, options);
+        this.journalctl
+                .stream(this.journalctlIngest)
+                .catch(this.journalctlError);
     }
 
     /*
@@ -792,9 +791,7 @@ export default class View extends React.Component {
             proc.close();
         });
 
-        proc.fail(() => {
-            this.setState({ error_tlog_user: true });
-        });
+        proc.catch(() => this.setState({ error_tlog_user: true }));
 
         cockpit.addEventListener("locationchanged",
                                  this.onLocationChanged);

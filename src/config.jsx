@@ -111,12 +111,9 @@ class GeneralConfig extends React.Component {
             },
             writer:  this.state.writer
         };
-        this.file.replace(config).done(() => {
-            this.setState({ submitting: false });
-        })
-                .fail((error) => {
-                    console.log(error);
-                });
+        this.file.replace(config)
+                .then(() => this.setState({ submitting: false }))
+                .catch(console.log);
         event.preventDefault();
     }
 
@@ -155,8 +152,8 @@ class GeneralConfig extends React.Component {
             proc.close();
         });
 
-        proc.fail((fail) => {
-            console.log(fail);
+        proc.catch(error => {
+            console.log(error);
             this.readConfig();
         });
     }
@@ -488,9 +485,7 @@ class SssdConfig extends React.Component {
         const promise = this.file.read();
         const sssdconfpromise = this.sssdconf.read();
 
-        promise.fail(function(error) {
-            console.log(error);
-        });
+        promise.catch(console.log);
 
         /* It is not an error when the file does not exist, then() callback will
          * be called with a null value for content and tag is "-" */

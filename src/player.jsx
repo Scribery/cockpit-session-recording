@@ -226,9 +226,10 @@ const PacketBuffer = class {
         this.journalctl = journal.journalctl(
             this.matchList,
             { count: "all", follow: false, merge: true });
-        this.journalctl.fail(this.handleError);
-        this.journalctl.stream(this.handleStream);
-        this.journalctl.done(this.handleDone);
+        this.journalctl
+                .stream(this.handleStream)
+                .then(this.handleDone)
+                .catch(this.handleError);
         /*
          * Last seen cursor of the first, non-follow, journalctl run.
          * Null if no entry was received yet, or the second run has
@@ -611,9 +612,9 @@ const PacketBuffer = class {
             {
                 cursor: this.cursor, follow: true, merge: true, count: "all"
             });
-        this.journalctl.fail(this.handleError);
         this.journalctl.stream(this.handleStream);
-        /* NOTE: no "done" handler on purpose */
+        this.journalctl.catch(this.handleError);
+        /* NOTE: no "then" handler on purpose */
     }
 };
 
@@ -648,8 +649,8 @@ class Search extends React.Component {
         this.journalctl = journal.journalctl(
             this.props.matchList,
             { count: "all", follow: false, merge: true, grep: this.state.search });
-        this.journalctl.fail(this.handleError);
         this.journalctl.stream(this.handleStream);
+        this.journalctl.catch(this.handleError);
     }
 
     handleStream(data) {

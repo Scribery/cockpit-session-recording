@@ -642,7 +642,7 @@ class Search extends React.Component {
         const state = {};
         state[name] = value;
         this.setState(state);
-        cockpit.location.go(cockpit.location.path[0], $.extend(cockpit.location.options, { search_rec: value }));
+        cockpit.location.go(cockpit.location.path[0], { ...cockpit.location.options, search_rec: value });
     }
 
     handleSearchSubmit() {

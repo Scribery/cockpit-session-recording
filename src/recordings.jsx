@@ -55,7 +55,6 @@ import { global_danger_color_200 } from "@patternfly/react-tokens";
 import { debounce } from 'throttle-debounce';
 import { journal } from 'journal';
 
-const $ = require("jquery");
 const _ = cockpit.gettext;
 const Player = require("./player.jsx");
 const Config = require("./config.jsx");
@@ -776,7 +775,7 @@ export default class View extends React.Component {
         const state = {};
         state[name] = value;
         this.setState(state);
-        cockpit.location.go([], $.extend(cockpit.location.options, state));
+        cockpit.location.go([], { ...cockpit.location.options, ...state });
     }
 
     handleOpenConfig() {

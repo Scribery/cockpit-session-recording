@@ -427,7 +427,8 @@ class SssdConfig extends React.Component {
             exclude_groups: "",
             groups: "",
             submitting: false,
-            authselectWithTlog: undefined
+            authselectFeature: "",
+            profileIsSSSD: undefined
         };
     }
 
@@ -443,10 +444,16 @@ class SssdConfig extends React.Component {
 
     confSave(obj) {
         const chmod_cmd = ["chmod", "600", "/etc/sssd/conf.d/sssd-session-recording.conf"];
-        let authselect_cmd = ["authselect", "select", "sssd", "with-files-domain", "--force"];
-        if (this.state.authselectWithTlog) {
-            authselect_cmd = ["authselect", "select", "sssd", "with-tlog", "--force"];
+        let authselect_cmd = ["authselect", "select", "sssd", "with-tlog", "--force"];
+
+        /* Allow retaining previously enabled features by using the
+         * less destructive 'enable-feature' when SSSD profile is already selected */
+        if (this.state.profileIsSSSD) {
+            authselect_cmd = ["authselect", "enable-feature", this.state.authselectFeature];
+        } else {
+            authselect_cmd = ["authselect", "select", "sssd", this.state.authselectFeature, "--force"];
         }
+
         this.setState({ submitting: true });
         this.file.replace(obj)
                 .then(tag => {
@@ -500,13 +507,26 @@ class SssdConfig extends React.Component {
                     console.log("Error: " + error);
                 });
 
+        /* Check if authselect SSSD profile is enabled */
+        cockpit.spawn(['authselect', 'current', '--raw'], { err: 'message' })
+                .then(profile => {
+                    if (profile.toLowerCase().includes('sssd')) {
+                        this.setState({ profileIsSSSD: true });
+                    } else {
+                        this.setState({ profileIsSSSD: false });
+                    }
+                })
+                .catch(e => {
+                    console.log("Error getting authselect features: " + e.toString());
+                });
+
         /* Check authselect features */
         cockpit.spawn(['authselect', 'list-features', 'sssd'], { err: 'message' })
                 .then(features => {
                     if (features.toLowerCase().includes('with-tlog')) {
-                        this.setState({ authselectWithTlog: true });
+                        this.setState({ authselectFeature: 'with-tlog' });
                     } else {
-                        this.setState({ authselectWithTlog: false });
+                        this.setState({ authselectFeature: 'with-files-domain' });
                     }
                 })
                 .catch(e => {

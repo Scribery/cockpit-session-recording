@@ -17,9 +17,10 @@
  * along with Cockpit; If not, see <http://www.gnu.org/licenses/>.
  */
 
-import cockpit from 'cockpit';
 import React from 'react';
 import View from "./recordings.jsx";
+
+import cockpit from 'cockpit';
 
 const _ = cockpit.gettext;
 

@@ -31,7 +31,7 @@ export const Application = () => {
         const hostname = cockpit.file('/etc/hostname');
         hostname.watch(content => setHostname(content?.trim() ?? ""));
         return hostname.close;
-    });
+    }, []);
 
     return (
         <View />

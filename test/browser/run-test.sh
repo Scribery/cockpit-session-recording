@@ -7,6 +7,9 @@ git init
 rm -f bots  # common local case: existing bots symlink
 make bots test/common
 
+# install sizzle
+npm install sizzle
+
 # disable detection of affected tests; testing takes too long as there is no parallelization
 mv .git dot-git
 

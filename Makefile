@@ -114,6 +114,11 @@ devel-uninstall:
 print-version:
 	@echo "$(VERSION)"
 
+# required for running integration tests
+TEST_NPMS = \
+       node_modules/sizzle \
+       $(NULL)
+
 dist: $(TARFILE)
 	@ls -1 $(TARFILE)
 
@@ -126,7 +131,8 @@ $(TARFILE): $(DIST_TEST) $(SPEC)
 	if type appstream-util >/dev/null 2>&1; then appstream-util validate-relax --nonet *.metainfo.xml; fi
 	tar --xz $(TAR_ARGS) -cf $(TARFILE) --transform 's,^,$(RPM_NAME)/,' \
 		--exclude packaging/$(SPEC).in --exclude node_modules \
-		$$(git ls-files) $(COCKPIT_REPO_FILES) $(NODE_MODULES_TEST) $(SPEC) dist/
+		$$(git ls-files) $(COCKPIT_REPO_FILES) $(NODE_MODULES_TEST) $(SPEC) $(TEST_NPMS) \
+		dist/
 
 $(NODE_CACHE): $(NODE_MODULES_TEST)
 	tar --xz $(TAR_ARGS) -cf $@ node_modules

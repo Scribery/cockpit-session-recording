@@ -18,8 +18,8 @@
     "stylelint:fix": "stylelint --fix src/*{.css,scss}"
   },
   "devDependencies": {
-    "@types/react": "18.3.13",
-    "@types/react-dom": "18.3.1",
+    "@types/react": "19.0.1",
+    "@types/react-dom": "19.0.2",
     "@typescript-eslint/eslint-plugin": "8.18.0",
     "argparse": "2.0.1",
     "esbuild": "0.24.0",
@@ -61,8 +61,8 @@
     "comment-json": "4.2.5",
     "ini": "5.0.0",
     "jquery": "3.7.1",
-    "react": "18.3.1",
-    "react-dom": "18.3.1",
+    "react": "19.0.0",
+    "react-dom": "19.0.0",
     "throttle-debounce": "5.0.2",
     "xterm": "5.3.0",
     "xterm-addon-canvas": "0.5.0"

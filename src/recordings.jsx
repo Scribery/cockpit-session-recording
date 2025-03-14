@@ -30,17 +30,14 @@ import {
     DataListItemRow,
     EmptyState,
     EmptyStateBody,
-    EmptyStateIcon,
     EmptyStateVariant,
     ExpandableSection,
-    Page, PageSection, PageSectionVariants,
-    Spinner,
+    Page, PageSection, Spinner,
     TextInput,
     Toolbar,
     ToolbarContent,
     ToolbarItem,
-    ToolbarGroup, EmptyStateHeader,
-} from "@patternfly/react-core";
+    ToolbarGroup, } from "@patternfly/react-core";
 import { sortable, SortByDirection } from '@patternfly/react-table';
 import { TableHeader, TableBody, Table as TableDeprecated } from '@patternfly/react-table/deprecated';
 import {
@@ -51,7 +48,7 @@ import {
     SearchIcon
 } from "@patternfly/react-icons";
 import cockpit from 'cockpit';
-import { global_danger_color_200 } from "@patternfly/react-tokens";
+
 import { debounce } from 'throttle-debounce';
 import { journal } from 'journal';
 
@@ -312,10 +309,9 @@ class Logs extends React.Component {
         if (r == null) {
             return (
                 <Bullseye>
-                    <EmptyState variant={EmptyStateVariant.sm}>
+                    <EmptyState  headingLevel="h2"   titleText={<>{_("Loading...")}</>} variant={EmptyStateVariant.sm}>
                         <Spinner />
-                        <EmptyStateHeader titleText={<>{_("Loading...")}</>} headingLevel="h2" />
-                    </EmptyState>
+                        </EmptyState>
                 </Bullseye>
             );
         } else {
@@ -399,10 +395,9 @@ class Recording extends React.Component {
         if (r == null) {
             return (
                 <Bullseye>
-                    <EmptyState variant={EmptyStateVariant.sm}>
+                    <EmptyState  headingLevel="h2"   titleText={<>{_("Loading...")}</>} variant={EmptyStateVariant.sm}>
                         <Spinner />
-                        <EmptyStateHeader titleText={<>{_("Loading...")}</>} headingLevel="h2" />
-                    </EmptyState>
+                        </EmptyState>
                 </Bullseye>
             );
         } else {
@@ -421,7 +416,7 @@ groupProps={{ sticky: 'top' }}
                           </Breadcrumb>
                       }
                 >
-                    <PageSection>
+                    <PageSection hasBodyWrapper={false}>
                         <Player.Player
                             ref={this.playerRef}
                             matchList={this.props.recording.matchList}
@@ -525,8 +520,7 @@ class RecordingList extends React.Component {
                     <TableBody onRowClick={this.handleRowClick} />
                 </TableDeprecated>
                 {!rows.length &&
-                    <EmptyState variant={EmptyStateVariant.sm}>
-                        <EmptyStateHeader titleText={<>{_("No recordings found")}</>} icon={<EmptyStateIcon icon={SearchIcon} />} headingLevel="h2" />
+                    <EmptyState  headingLevel="h2" icon={SearchIcon}  titleText={<>{_("No recordings found")}</>} variant={EmptyStateVariant.sm}>
                         <EmptyStateBody>
                             {_("No recordings matched the filter criteria.")}
                         </EmptyStateBody>
@@ -830,16 +824,7 @@ export default class View extends React.Component {
         } else if (this.state.error_tlog_user === true) {
             return (
                 <Bullseye>
-                    <EmptyState variant={EmptyStateVariant.sm}>
-                        <EmptyStateHeader
-                            titleText={<>{_("Error")}</>}
-                            icon={
-                                <EmptyStateIcon
-                                icon={ExclamationCircleIcon}
-                                color={global_danger_color_200.value}
-                                />
-                            } headingLevel="h2"
-                        />
+                    <EmptyState  headingLevel="h2" icon={ExclamationCircleIcon}  titleText={<>{_("Error")}</>} variant={EmptyStateVariant.sm}>
                         <EmptyStateBody>
                             {_("Unable to retrieve tlog user from system.")}
                         </EmptyStateBody>
@@ -911,8 +896,7 @@ export default class View extends React.Component {
                         </ToolbarItem>
                     </ToolbarGroup>}
                     <ToolbarItem>
-                        <Button id="btn-config" onClick={this.handleOpenConfig}>
-                            <CogIcon />
+                        <Button icon={<CogIcon />} id="btn-config" onClick={this.handleOpenConfig}>
                         </Button>
                     </ToolbarItem>
                 </ToolbarContent>
@@ -920,7 +904,7 @@ export default class View extends React.Component {
 
             return (
                 <Page>
-                    <PageSection variant={PageSectionVariants.light}>
+                    <PageSection hasBodyWrapper={false} >
                         <Toolbar>{toolbar}</Toolbar>
                         <RecordingList
                             date_since={this.state.date_since}

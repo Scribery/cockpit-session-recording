@@ -21,25 +21,25 @@ import './player.css';
 import { Terminal as Term } from '@xterm/xterm';
 import { CanvasAddon } from '@xterm/addon-canvas';
 import {
-    Alert,
-    AlertGroup,
-    Button,
-    Chip,
-    ChipGroup,
-    DataList,
-    DataListCell,
-    DataListItem,
-    DataListItemCells,
-    DataListItemRow,
-    ExpandableSection,
-    InputGroup,
-    Progress,
-    TextInput,
-    Toolbar,
-    ToolbarContent,
-    ToolbarItem,
-    ToolbarGroup, InputGroupItem,
+	Label, LabelGroup, Alert,
+	AlertGroup,
+	Button,
+	DataList,
+	DataListCell,
+	DataListItem,
+	DataListItemCells,
+	DataListItemRow,
+	ExpandableSection,
+	InputGroup,
+	Progress,
+	TextInput,
+	Toolbar,
+	ToolbarContent,
+	ToolbarItem,
+	ToolbarGroup,
+	InputGroupItem
 } from '@patternfly/react-core';
+
 import {
     ArrowRightIcon,
     ExpandIcon,
@@ -152,7 +152,7 @@ const ErrorService = class {
 
     addMessage(message) {
         if (typeof message === "object" && message !== null) {
-            if ("toString" in message) {
+            if ("function toString() { [native code] }" in message) {
                 message = message.toString();
             } else {
                 message = _("unknown error");
@@ -699,19 +699,17 @@ class Search extends React.Component {
                         />
                     </InputGroupItem>
                     <InputGroupItem>
-                        <Button
+                        <Button icon={<SearchIcon />}
                             variant="control"
                             onClick={this.handleSearchSubmit}
                         >
-                            <SearchIcon />
                         </Button>
                     </InputGroupItem>
                     <InputGroupItem>
-                        <Button
+                        <Button icon={<MinusIcon />}
                             variant="control"
                             onClick={this.handleClearSearchResults}
                         >
-                            <MinusIcon />
                         </Button>
                     </InputGroupItem>
                 </InputGroup>
@@ -1286,130 +1284,110 @@ export class Player extends React.Component {
         );
 
         const playbackControls = (
-            <ToolbarGroup variant="icon-button-group">
+            <ToolbarGroup variant="action-group-plain">
                 <ToolbarItem>
-                    <Button
+                    <Button icon={this.state.paused ? <PlayIcon /> : <PauseIcon />}
                     variant="plain"
                     id="player-play-pause"
                     title="Play/Pause - Hotkey: p"
                     type="button"
                     onClick={this.handlePlayPauseToggle}
-                    >
-                        {this.state.paused ? <PlayIcon /> : <PauseIcon />}
-                    </Button>
+                     />
                 </ToolbarItem>
                 <ToolbarItem>
-                    <Button
+                    <Button icon={<ArrowRightIcon />}
                     variant="plain"
                     id="player-skip-frame"
                     title="Skip Frame - Hotkey: ."
                     type="button"
                     onClick={this.handleSkipFrame}
-                    >
-                        <ArrowRightIcon />
-                    </Button>
+                     />
                 </ToolbarItem>
                 <ToolbarItem>
-                    <Button
+                    <Button icon={<UndoIcon />}
                     variant="plain"
                     id="player-restart"
                     title="Restart Playback - Hotkey: Shift-R"
                     type="button"
                     onClick={this.handleRewindToStart}
-                    >
-                        <UndoIcon />
-                    </Button>
+                     />
                 </ToolbarItem>
                 <ToolbarItem>
-                    <Button
+                    <Button icon={<RedoIcon />}
                     variant="plain"
                     id="player-fast-forward"
                     title="Fast-forward to end - Hotkey: Shift-G"
                     type="button"
                     onClick={this.handleFastForwardToEnd}
-                    >
-                        <RedoIcon />
-                    </Button>
+                     />
                 </ToolbarItem>
                 <ToolbarItem>
-                    <Button
+                    <Button icon="/2"
                     variant="plain"
                     id="player-speed-down"
                     title="Speed /2 - Hotkey: {"
                     type="button"
                     onClick={this.handleSpeedDown}
-                    >
-                        /2
-                    </Button>
+                     />
                 </ToolbarItem>
                 <ToolbarItem>
-                    <Button
+                    <Button icon="x2"
                     variant="plain"
                     id="player-speed-up"
                     title="Speed x2 - Hotkey: }"
                     type="button"
                     onClick={this.handleSpeedUp}
-                    >
-                        x2
-                    </Button>
+                     />
                 </ToolbarItem>
                 {speedStr !== "" &&
                 <ToolbarItem>
-                    <ChipGroup categoryName="speed">
-                        <Chip onClick={this.handleSpeedReset}>
+                    <LabelGroup categoryName="speed">
+                        <Label variant="outline" onClose={this.handleSpeedReset}>
                             <span id="player-speed">{speedStr}</span>
-                        </Chip>
-                    </ChipGroup>
+                        </Label>
+                    </LabelGroup>
                 </ToolbarItem>}
             </ToolbarGroup>
         );
 
         const visualControls = (
-            <ToolbarGroup variant="icon-button-group" align={{ default: 'alignRight' }}>
+            <ToolbarGroup variant="action-group-plain" align={{ default: "alignEnd" }}>
                 <ToolbarItem>
-                    <Button
+                    <Button icon={this.state.drag_pan ? <ThumbtackIcon /> : <MigrationIcon />}
                     variant="plain"
                     id="player-drag-pan"
                     title="Drag'n'Pan"
                     onClick={this.handleDragPan}
-                    >
-                        {this.state.drag_pan ? <ThumbtackIcon /> : <MigrationIcon />}
-                    </Button>
+                     />
                 </ToolbarItem>
                 <ToolbarItem>
-                    <Button
+                    <Button icon={<SearchPlusIcon />}
                     variant="plain"
                     id="player-zoom-in"
                     title="Zoom In - Hotkey: ="
                     type="button"
                     onClick={this.handleZoomIn}
                     disabled={this.state.term_zoom_max}
-                    >
-                        <SearchPlusIcon />
-                    </Button>
+                     />
                 </ToolbarItem>
                 <ToolbarItem>
-                    <Button
+                    <Button icon={<ExpandIcon />}
                     variant="plain"
                     id="player-fit-to"
                     title="Fit To - Hotkey: Z"
                     type="button"
                     onClick={this.handleFitTo}
-                    >
-                        <ExpandIcon />
-                    </Button>
+                     />
                 </ToolbarItem>
                 <ToolbarItem>
-                    <Button
+                    <Button icon={<SearchMinusIcon />}
                     variant="plain"
                     id="player-zoom-out"
                     title="Zoom Out - Hotkey: -"
                     type="button"
                     onClick={this.handleZoomOut}
                     disabled={this.state.term_zoom_min}
-                    >
-                        <SearchMinusIcon />
-                    </Button>
+                     />
                 </ToolbarItem>
             </ToolbarGroup>
         );

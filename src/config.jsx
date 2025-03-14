@@ -35,13 +35,11 @@ import {
     Checkbox,
     Bullseye,
     EmptyState,
-    EmptyStateIcon,
     EmptyStateBody,
     EmptyStateVariant,
-    Page, PageSection, EmptyStateHeader,
-} from "@patternfly/react-core";
+    Page, PageSection, } from "@patternfly/react-core";
 import { ExclamationCircleIcon } from "@patternfly/react-icons";
-import { global_danger_color_200 } from "@patternfly/react-tokens";
+
 import cockpit from 'cockpit';
 
 const json = require('comment-json');
@@ -385,17 +383,7 @@ class GeneralConfig extends React.Component {
                     )
                     : (
                         <Bullseye>
-                            <EmptyState variant={EmptyStateVariant.sm}>
-                                <EmptyStateHeader
-                                titleText={<>{_("There is no configuration file of tlog present in your system.")}</>}
-                                icon={
-                                    <EmptyStateIcon
-                                icon={ExclamationCircleIcon}
-                                color={global_danger_color_200.value}
-                                    />
-                                } headingLevel="h4"
-                                />
-                                <EmptyStateHeader titleText={<>{_("Please, check the /etc/tlog/tlog-rec-session.conf or if tlog is installed.")}</>} headingLevel="h4" />
+                            <EmptyState  headingLevel="h4" icon={ExclamationCircleIcon}  titleText={<>{_("There is no configuration file of tlog present in your system.")}</>} variant={EmptyStateVariant.sm}>
                                 <EmptyStateBody>
                                     {this.state.file_error}
                                 </EmptyStateBody>
@@ -682,7 +670,7 @@ groupProps={{ sticky: 'top' }}
                   </Breadcrumb>
               }
         >
-            <PageSection>
+            <PageSection hasBodyWrapper={false}>
                 <Flex className="config-container">
                     <GeneralConfig />
                     <SssdConfig />

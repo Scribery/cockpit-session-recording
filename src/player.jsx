@@ -18,8 +18,8 @@
 */
 import React from 'react';
 import './player.css';
-import { Terminal as Term } from 'xterm';
-import { CanvasAddon } from 'xterm-addon-canvas';
+import { Terminal as Term } from '@xterm/xterm';
+import { CanvasAddon } from '@xterm/addon-canvas';
 import {
     Alert,
     AlertGroup,

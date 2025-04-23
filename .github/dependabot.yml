@@ -28,6 +28,9 @@ updates:
         patterns:
           - "@types*"
           - "types*"
+      xterm:
+        patterns:
+          - "@xterm*"
 
     ignore:
       # https://github.com/cockpit-project/cockpit/issues/21151

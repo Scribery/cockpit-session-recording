@@ -164,12 +164,22 @@ rpm: $(TARFILE) $(NODE_CACHE) $(SPEC)
 # build a VM with locally built distro pkgs installed
 # disable networking, VM images have mock/pbuilder with the common build dependencies pre-installed
 $(VM_IMAGE): export XZ_OPT=-0
-$(VM_IMAGE): $(TARFILE) $(NODE_CACHE) bots test/vm.install
-	bots/image-customize --fresh \
-		--upload $(NODE_CACHE):/var/tmp/ --build $(TARFILE) \
-		--upload ./test/files/1.journal:/var/log/journal/1.journal \
-		--upload ./test/files/binary-rec.journal:/var/log/journal/binary-rec.journal \
-		--script $(CURDIR)/test/vm.install $(TEST_OS)
+$(VM_IMAGE): $(TARFILE) $(NODE_CACHE) bots
+	# HACK for ostree images: skip the rpm build/install
+	if [ "$${TEST_OS%coreos}" != "$$TEST_OS" ] || [ "$${TEST_OS%bootc}" != "$$TEST_OS" ] || [ "$$TEST_OS" = "rhel4edge" ]; then \
+		bots/image-customize --verbose --fresh $(VM_CUSTOMIZE_FLAGS) \
+					--run-command 'mkdir -p /usr/local/share/cockpit' \
+					--upload dist/:/usr/local/share/cockpit/podman \
+					--upload ./test/files/1.journal:/var/log/journal/1.journal \
+					--upload ./test/files/binary-rec.journal:/var/log/journal/binary-rec.journal \
+					--script $(CURDIR)/test/vm.install $(TEST_OS); \
+	else \
+		bots/image-customize --fresh \
+					--upload $(NODE_CACHE):/var/tmp/ --build $(TARFILE) \
+					--upload ./test/files/1.journal:/var/log/journal/1.journal \
+					--upload ./test/files/binary-rec.journal:/var/log/journal/binary-rec.journal \
+					--script $(CURDIR)/test/vm.install $(TEST_OS); \
+		fi
 
 # convenience target for the above
 vm: $(VM_IMAGE)

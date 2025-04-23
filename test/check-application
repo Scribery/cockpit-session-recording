@@ -397,6 +397,8 @@ class TestApplication(testlib.MachineCase):
             },
         )
 
+    # PackageKit is not a thing on coreOS/bootc
+    @testlib.skipOstree("tests cockpit-packagekit")
     def testAppMenu(self):
         srrow = ".app-list .pf-v5-c-data-list__item-row:" \
                 "contains('Session Recording')"

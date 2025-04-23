@@ -7,10 +7,22 @@ set -eux
 mkdir -p /etc/cockpit
 printf "[WebService]\\nAllowUnencrypted=true\\n" > /etc/cockpit/cockpit.conf
 
+# socket isn't present on CoreOS/bootc
+HAVE_COCKPIT_SOCKET=
+if [ -n "$(systemctl --no-legend list-unit-files cockpit.socket || true)" ]; then
+    HAVE_COCKPIT_SOCKET=1
+fi
+
+if [ -n "$HAVE_COCKPIT_SOCKET" ]; then
+    systemctl enable cockpit.socket
+fi
+
 if systemctl is-active -q firewalld.service; then
     firewall-cmd --add-service=cockpit --permanent
 fi
-systemctl enable cockpit.socket
 
-# CSR needed for testAppMenu
-dnf install -y cockpit-packagekit glibc-langpack-en
+# skip if running on CoreOS/bootc
+if ! [ -f "/run/ostree-booted" ]; then
+    # needed for testAppMenu
+    dnf install -y cockpit-packagekit glibc-langpack-en
+fi

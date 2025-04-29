@@ -144,4 +144,4 @@ It is possible to setup the test environment without running the tests:
 
 You can also run the test against a different Cockpit image, for example:
 
-    TEST_OS=fedora-34 make check
+    TEST_OS=fedora-42 make check

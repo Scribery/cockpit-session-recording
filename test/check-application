@@ -339,7 +339,10 @@ class TestApplication(testlib.MachineCase):
                 # enter the search term and wait for the results to return
                 b.set_input_text(inp, term)
                 time.sleep(5)
-                self.assertEqual(b.text(".pf-v6-c-table").count("contractor"), occ)
+                if occ == 0:
+                    self.browser.wait_in_text(".pf-v6-c-empty-state", "No matching results")
+                else:
+                    self.assertEqual(b.text("#recordings-list").count("contractor"), occ)
 
     def testSearch(self):
         self._filter(
@@ -381,7 +384,7 @@ class TestApplication(testlib.MachineCase):
         self._filter(
             "#filter-since",
             {
-                0: {"2020-06-02", "2020-06-01 12:31:00"},
+                0: {"2023-09-20", "2023-09-20 12:31:00"},
                 1: {"2020-06-01 12:17:01", "2020-06-01 12:30:50"},
                 2: {"2020-06-01", "2020-06-01 12:17:00"},
             },

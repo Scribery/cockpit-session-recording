@@ -38,8 +38,9 @@ import {
     ToolbarContent,
     ToolbarItem,
     ToolbarGroup, } from "@patternfly/react-core";
-import { sortable, SortByDirection } from '@patternfly/react-table';
-import { TableHeader, TableBody, Table as TableDeprecated } from '@patternfly/react-table/deprecated';
+import { SortByDirection } from '@patternfly/react-table';
+import { ListingTable } from "cockpit-components-table.jsx";
+import { EmptyStatePanel } from 'cockpit-components-empty-state.jsx';
 import {
     CogIcon,
     ExclamationCircleIcon,
@@ -454,77 +455,75 @@ groupProps={{ sticky: 'top' }}
 class RecordingList extends React.Component {
     constructor(props) {
         super(props);
-        this.handleOnSort = this.handleOnSort.bind(this);
-        this.handleRowClick = this.handleRowClick.bind(this);
         this.state = {
             sortBy: {
                 index: 1,
                 direction: SortByDirection.asc
             }
         };
-    }
 
-    handleOnSort(_event, index, direction) {
-        this.setState({
-            sortBy: {
-                index,
-                direction
-            },
-        });
-    }
-
-    handleRowClick(_event, row) {
-        cockpit.location.go([row.id], cockpit.location.options);
     }
 
     render() {
         const { sortBy } = this.state;
         const { index, direction } = sortBy;
+        const recordingsRow = []
 
-        // generate columns
-        const titles = ["User", "Start", "End", "Duration"];
-        if (this.props.diff_hosts === true)
-            titles.push("Hostname");
-        const columnTitles = titles.map(title => ({
-            title: _(title),
-            transforms: [sortable]
-        }));
+        const columnTitles = [
+            { title: _("User"), sortable: true },
+            { title: _("Start"), sortable: true },
+            { title: _("End"), sortable: true },
+            { title: _("Duration") },
+        ];
 
-        // sort rows
-        let rows = this.props.list.map(rec => {
-            const cells = [
-                rec.user,
-                formatDateTime(rec.start),
-                formatDateTime(rec.end),
-                formatDuration(rec.end - rec.start),
-            ];
-            if (this.props.diff_hosts === true)
-                cells.push(rec.hostname);
-            return {
-                id: rec.id,
-                cells,
-            };
-        }).sort((a, b) => a.cells[index].localeCompare(b.cells[index]));
-        rows = direction === SortByDirection.asc ? rows : rows.reverse();
+        this.props.list.forEach(rec => {
+            const row = {
+                columns:
+                    [
+                        {
+                            title: <Button variant="link" isInline onClick={() => cockpit.location.go([rec.id])}>{rec.user}</Button>,
+                            sortKey: rec.user,
+                        },
+                        {
+                            title: formatDateTime(rec.start),
+                            sortKey: formatDateTime(rec.start),
+                        },                        {
+                            title: formatDateTime(rec.end),
+                            sortKey: formatDateTime(rec.end),
+                        },
+                        {
+                            title: formatDuration(rec.end - rec.start),
+                        },
+                    ],
+                props: {
+                    key: rec.id,
+                }
+            }
+
+            recordingsRow.push(row);
+        });
+
+        const sortRows = (rows, direction, idx) => {
+            rows.sort((a, b) => {
+                const aitem = a.columns[idx].sortKey || a.columns[idx].title;
+                const bitem = b.columns[idx].sortKey || b.columns[idx].title;
+
+                return aitem.localeCompare(bitem);
+            });
+            return direction === SortByDirection.asc ? rows : rows.reverse();
+        };
 
         return (
             <>
-                <TableDeprecated
+                <ListingTable id="recordings-list"
                     aria-label={_("Recordings")}
-                    cells={columnTitles}
-                    rows={rows}
-                    sortBy={sortBy}
-                    onSort={this.handleOnSort}
-                >
-                    <TableHeader />
-                    <TableBody onRowClick={this.handleRowClick} />
-                </TableDeprecated>
-                {!rows.length &&
-                    <EmptyState  headingLevel="h2" icon={SearchIcon}  titleText={<>{_("No recordings found")}</>} variant={EmptyStateVariant.sm}>
-                        <EmptyStateBody>
-                            {_("No recordings matched the filter criteria.")}
-                        </EmptyStateBody>
-                    </EmptyState>}
+                    columns={columnTitles}
+                    rows={recordingsRow}
+                    sortMethod={sortRows}
+                    emptyComponent={<EmptyStatePanel title={_("No matching results")} icon={SearchIcon} />}
+                    variant="compact"
+                    sortBy={{ index: 0, direction: SortByDirection.asc }}
+                     />
             </>
         );
     }

@@ -15,16 +15,6 @@
     user-select: none;
 }
 
-#logs-view {
-    height: 300px;
-    overflow-y: scroll;
-    margin-bottom: 0;
-}
-
-#recording-wrap {
-    height: 100%;
-}
-
 .logs-view-log-time {
     display: inline-block;
     width: 150px;
@@ -33,17 +23,13 @@
 
 #input-textarea {
     width: 100%;
-    height: 100%;
+    height: 30%;
     font-family: monospace;
     resize: none;
 }
 
 #input-player-wrap {
     margin-top: 5px;
-}
-
-.panel-footer {
-    padding: 5px 15px;
 }
 
 .search-result {

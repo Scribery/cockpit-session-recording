@@ -656,8 +656,7 @@ export function Config () {
     };
 
     return (
-        <Page
-groupProps={{ sticky: 'top' }}
+        <Page className='no-masthead-sidebar'
               isBreadcrumbGrouped
               breadcrumb={
                   <Breadcrumb className='machines-listing-breadcrumb'>

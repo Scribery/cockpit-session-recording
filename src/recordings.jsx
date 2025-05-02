@@ -16,6 +16,9 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with Cockpit; If not, see <http://www.gnu.org/licenses/>.
  */
+import '../pkg/lib/patternfly/patternfly-6-cockpit.scss';
+import '../pkg/lib/patternfly/patternfly-6-overrides.scss';
+
 import React from "react";
 import {
     Breadcrumb, BreadcrumbItem,
@@ -403,8 +406,7 @@ class Recording extends React.Component {
             );
         } else {
             return (
-                <Page
-groupProps={{ sticky: 'top' }}
+                <Page className='no-masthead-sidebar'
                       isBreadcrumbGrouped
                       breadcrumb={
                           <Breadcrumb className='machines-listing-breadcrumb'>
@@ -902,7 +904,7 @@ export default class View extends React.Component {
             );
 
             return (
-                <Page>
+                <Page className='no-masthead-sidebar'>
                     <PageSection hasBodyWrapper={false} >
                         <Toolbar>{toolbar}</Toolbar>
                         <RecordingList

@@ -403,15 +403,8 @@ class TestApplication(testlib.MachineCase):
     # PackageKit is not a thing on coreOS/bootc
     @testlib.skipOstree("tests cockpit-packagekit")
     def testAppMenu(self):
-        m = self.machine
-
-        # PatternFly 5
-        if m.image.startswith("centos"):
-            srrow = ".app-list .pf-v5-c-data-list__item-row:" \
-                    "contains('Session Recording')"
-        else:
-            srrow = ".app-list .pf-v6-c-data-list__item-row:" \
-                    "contains('Session Recording')"
+        srrow = ".app-list .pf-v6-c-data-list__item-row:" \
+                "contains('Session Recording')"
         srbut = "{} button:contains('Session Recording')" \
                 "".format(srrow)
         b, _ = self._login("/apps", srrow)

@@ -1,5 +1,6 @@
 # Cockpit Session Recording
 
+
 Module for [Cockpit](http://www.cockpit-project.org) which provides session recording 
 configuration and playback. 
 It requires [tlog](https://github.com/Scribery/tlog) to record terminal sessions. 

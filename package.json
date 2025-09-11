@@ -43,9 +43,9 @@
     "sass": "1.79.6",
     "sizzle": "2.3.10",
     "stylelint": "16.24.0",
-    "stylelint-config-recommended-scss": "16.0.0",
+    "stylelint-config-recommended-scss": "16.0.1",
     "stylelint-config-standard": "39.0.0",
-    "stylelint-config-standard-scss": "15.0.1",
+    "stylelint-config-standard-scss": "16.0.0",
     "stylelint-formatter-pretty": "4.0.1",
     "typescript": "5.9.2"
   },

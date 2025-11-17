@@ -13,6 +13,7 @@ downstream_package_name: cockpit-session-recording
 copy_upstream_release_description: true
 
 srpm_build_deps:
+  - jq
   - make
   - nodejs-npm
 

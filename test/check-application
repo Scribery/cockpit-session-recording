@@ -403,11 +403,8 @@ class TestApplication(testlib.MachineCase):
     # PackageKit is not a thing on coreOS/bootc
     @testlib.skipOstree("tests cockpit-packagekit")
     def testAppMenu(self):
-        srrow = ".app-list .pf-v6-c-data-list__item-row:" \
-                "contains('Session Recording')"
-        srbut = "{} button:contains('Session Recording')" \
-                "".format(srrow)
-        b, _ = self._login("/apps", srrow)
+        srbut = ".app-list button:contains('Session Recording')"
+        b, _ = self._login("/apps", srbut)
         self.allow_journal_messages(".*chromium-browser.appdata.xml.*",
                                     ".*xml.etree.ElementTree.ParseError:.*")
         b.click(srbut)

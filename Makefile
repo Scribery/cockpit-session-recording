@@ -32,7 +32,7 @@ COCKPIT_REPO_FILES = \
 	$(NULL)
 
 COCKPIT_REPO_URL = https://github.com/cockpit-project/cockpit.git
-COCKPIT_REPO_COMMIT = adbc8f3d87128b8895e3409adea03b49f5ea9a01 # 347
+COCKPIT_REPO_COMMIT = dd8b85b2f795db9c2b3333b17dab6de734e35751 # 352
 
 $(COCKPIT_REPO_FILES): $(COCKPIT_REPO_STAMP)
 COCKPIT_REPO_TREE = '$(strip $(COCKPIT_REPO_COMMIT))^{tree}'
@@ -116,11 +116,6 @@ devel-uninstall:
 print-version:
 	@echo "$(VERSION)"
 
-# required for running integration tests
-TEST_NPMS = \
-       node_modules/sizzle \
-       $(NULL)
-
 dist: $(TARFILE)
 	@ls -1 $(TARFILE)
 
@@ -134,7 +129,7 @@ $(TARFILE): $(DIST_TEST) $(SPEC) packaging/arch/PKGBUILD
 	tar --xz $(TAR_ARGS) -cf $(TARFILE) --transform 's,^,$(RPM_NAME)/,' \
 		--exclude packaging/$(SPEC).in --exclude node_modules \
 		$$(git ls-files) $(COCKPIT_REPO_FILES) $(NODE_MODULES_TEST) \
-		$(SPEC) $(TEST_NPMS) packaging/arch/PKGBUILD dist/
+		$(SPEC) packaging/arch/PKGBUILD dist/
 
 $(NODE_CACHE): $(NODE_MODULES_TEST)
 	tar --xz $(TAR_ARGS) -cf $@ node_modules

@@ -28,8 +28,8 @@ jobs:
   - job: tests
     trigger: pull_request
     targets: &test_targets
-      - fedora-41
       - fedora-42
+      - fedora-43
       - fedora-latest-stable-aarch64
       - fedora-rawhide
       - centos-stream-9

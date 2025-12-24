@@ -25,6 +25,10 @@ On Fedora:
 
     sudo dnf install gettext nodejs npm make
 
+On openSUSE Tumbleweed and Leap:
+
+    sudo zypper in gettext-runtime nodejs npm make
+
 This project is based on the [Cockpit Starter Kit](https://github.com/cockpit-project/starter-kit).
 See [Starter Kit Intro](http://cockpit-project.org/blog/cockpit-starter-kit.html) for details.
 

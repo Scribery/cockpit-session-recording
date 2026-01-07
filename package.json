@@ -47,7 +47,7 @@
     "@patternfly/react-table": "6.4.0",
     "@patternfly/react-tokens": "6.4.0",
     "buffer": "6.0.3",
-    "comment-json": "4.5.0",
+    "comment-json": "4.5.1",
     "ini": "6.0.0",
     "jquery": "3.7.1",
     "argparse": "2.0.1",

@@ -49,7 +49,7 @@
     "buffer": "6.0.3",
     "comment-json": "4.5.1",
     "ini": "6.0.0",
-    "jquery": "3.7.1",
+    "jquery": "4.0.0",
     "argparse": "2.0.1",
     "esbuild": "0.27.2",
     "esbuild-sass-plugin": "3.6.0",

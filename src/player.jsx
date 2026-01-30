@@ -19,7 +19,8 @@
 import React from 'react';
 import './player.css';
 import { Terminal as Term } from '@xterm/xterm';
-import { CanvasAddon } from '@xterm/addon-canvas';
+import { WebglAddon } from '@xterm/addon-webgl';
+import { EmptyStatePanel } from "cockpit-components-empty-state";
 import {
 	Label, LabelGroup, Alert,
 	AlertGroup,
@@ -763,6 +764,12 @@ export class Player extends React.Component {
         this.wrapperRef = React.createRef();
         this.termRef = React.createRef();
         this.handleProgressClick = this.handleProgressClick.bind(this);
+
+        // Check if WebGL2 is available
+        // Only checking if WebGL2RenderingContext is defined is not sufficient, in Firefox tests it is defined
+        // as WebGL is enabled but it is not available in headless mode.
+        this.webglAvailable = !!document.createElement("canvas").getContext("webgl2");
+
         this.term = new Term({
             cols: 80,
             rows: 25,
@@ -1202,7 +1209,7 @@ export class Player extends React.Component {
         }
         /* Open the terminal */
         this.term.open(this.termRef.current);
-        this.term.loadAddon(new CanvasAddon());
+        this.term.loadAddon(new WebglAddon());
         window.setInterval(this.sync, 100);
         /* Reset playback */
         this.reset();
@@ -1464,12 +1471,14 @@ export class Player extends React.Component {
                             style={scrollwrap}
                             ref={this.setScrollwrapRef}
                         >
-                            <div
-                                ref={this.termRef}
-                                className="console-ct"
-                                key={this.term}
-                                style={style}
-                            />
+                            {this.webglAvailable
+                                ? <div
+                                    ref={this.termRef}
+                                    className="console-ct"
+                                    key={this.term}
+                                    style={style}
+                                />
+                            : <EmptyStatePanel title={_("Terminal not available")} paragraph={_("This browser does not support WebGL2.")} />}
                         </div>
                     </div>
                     {progress}

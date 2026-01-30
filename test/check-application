@@ -61,14 +61,18 @@ class TestApplication(testlib.MachineCase):
         b, _ = self._login()
         self._sel_rec('rec1')
         b.click("#player-play-pause")
-        b.wait_in_text(self._term_line(1), "localhost")
+        # WebGL2 is not supported in firefox headless mode
+        if b.browser != "firefox":
+            b.wait_in_text(self._term_line(1), "localhost")
 
     def testPlayBinary(self):
         b, _ = self._login()
         self._sel_rec('binaryrec')
         b.click("#player-play-pause")
         time.sleep(5)
-        b.wait_in_text(self._term_line(4), "exit")
+        # WebGL2 is not supported in firefox headless mode
+        if b.browser != "firefox":
+            b.wait_in_text(self._term_line(4), "exit")
 
     def testFastforwardControls(self):
         progress = ".pf-v6-c-progress__indicator"
@@ -77,14 +81,16 @@ class TestApplication(testlib.MachineCase):
         self._sel_rec('rec1')
         # fast forward
         b.click("#player-fast-forward")
-        b.wait_in_text(self._term_line(12), "exit")
-        b.wait_attr(progress, "style", "width: 100%;")
-        # test restart playback
-        b.click("#player-restart")
-        b.click("#player-play-pause")
-        b.wait_text(self._term_line(7), "thisisatest123")
-        with b.wait_timeout(100):
+        # WebGL2 is not supported in firefox headless mode
+        if b.browser != "firefox":
+            b.wait_in_text(self._term_line(12), "exit")
             b.wait_attr(progress, "style", "width: 100%;")
+            # test restart playback
+            b.click("#player-restart")
+            b.click("#player-play-pause")
+            b.wait_text(self._term_line(7), "thisisatest123")
+            with b.wait_timeout(100):
+                b.wait_attr(progress, "style", "width: 100%;")
 
     def testSpeedControls(self):
         b, _ = self._login()
@@ -167,9 +173,11 @@ class TestApplication(testlib.MachineCase):
         b.click("#player-play-pause")
         time.sleep(10)
         # Make sure it didn't keep playing
-        b.wait_not_in_text(self._term_line(6), "thisisatest123")
-        # Test if it can start playing again
-        b.click("#player-play-pause")
+        # WebGL2 is not supported in firefox headless mode
+        if b.browser != "firefox":
+            b.wait_not_in_text(self._term_line(6), "thisisatest123")
+            # Test if it can start playing again
+            b.click("#player-play-pause")
 
     def testSessionRecordingConf(self):
         b, m = self._login()
@@ -280,18 +288,20 @@ class TestApplication(testlib.MachineCase):
         self._sel_rec('rec1')
         # start playback and pause in middle
         b.click("#player-play-pause")
-        b.wait_in_text(self._term_line(1), "localhost")
-        b.click("#player-play-pause")
-        # zoom in so that the whole screen is no longer visible
-        b.click("#player-zoom-in")
-        b.click("#player-zoom-in")
-        # select and ensure drag'n'pan mode
-        b.click("#player-drag-pan")
-        # scroll and check for screen movement
-        b.mouse(".dragnpan", "mousedown", 200, 200)
-        b.mouse(".dragnpan", "mousemove", 10, 10)
-        self.assertNotEqual(b.attr(".dragnpan", "scrollTop"), 0)
-        self.assertNotEqual(b.attr(".dragnpan", "scrollLeft"), 0)
+        # WebGL2 is not supported in firefox headless mode
+        if b.browser != "firefox":
+            b.wait_in_text(self._term_line(1), "localhost")
+            b.click("#player-play-pause")
+            # zoom in so that the whole screen is no longer visible
+            b.click("#player-zoom-in")
+            b.click("#player-zoom-in")
+            # select and ensure drag'n'pan mode
+            b.click("#player-drag-pan")
+            # scroll and check for screen movement
+            b.mouse(".dragnpan", "mousedown", 200, 200)
+            b.mouse(".dragnpan", "mousemove", 10, 10)
+            self.assertNotEqual(b.attr(".dragnpan", "scrollTop"), 0)
+            self.assertNotEqual(b.attr(".dragnpan", "scrollLeft"), 0)
 
     def testLogCorrelation(self):
         b, m = self._login()
@@ -301,10 +311,12 @@ class TestApplication(testlib.MachineCase):
         self._sel_rec('rec2')
         b.click("#btn-logs-view .pf-v6-c-expandable-section__toggle button")
         # fast forward until the end
-        while "exit" not in b.text(self._term_line(22)):
-            b.click("#player-skip-frame")
-        # check for extra log entries
-        b.wait_visible(".pf-v6-c-data-list:contains('authentication failure')")
+        # WebGL2 is not supported in firefox headless mode
+        if b.browser != "firefox":
+            while "exit" not in b.text(self._term_line(22)):
+                b.click("#player-skip-frame")
+            # check for extra log entries
+            b.wait_visible(".pf-v6-c-data-list:contains('authentication failure')")
 
     def testZoomSpeedControls(self):
         b, m = self._login()
@@ -316,13 +328,15 @@ class TestApplication(testlib.MachineCase):
         b.wait_visible(default_scale_sel)
         b.click("#player-play-pause")
         # wait until sleeping and zoom in
-        b.wait_in_text(self._term_line(8), "sleep")
-        b.click("#player-zoom-in")
-        b.wait_not_present(default_scale_sel)
-        # zoom out while typing fast
-        b.wait_in_text(self._term_line(9), "localhost")
-        b.click("#player-zoom-out")
-        b.wait_not_present(default_scale_sel)
+        # WebGL2 is not supported in firefox headless mode
+        if b.browser != "firefox":
+            b.wait_in_text(self._term_line(8), "sleep")
+            b.click("#player-zoom-in")
+            b.wait_not_present(default_scale_sel)
+            # zoom out while typing fast
+            b.wait_in_text(self._term_line(9), "localhost")
+            b.click("#player-zoom-out")
+            b.wait_not_present(default_scale_sel)
 
     def _filter(self, inp, occ_dict):
         m = self.machine

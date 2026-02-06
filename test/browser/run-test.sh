@@ -21,7 +21,7 @@ if [ "$TEST_OS" = "centos-9" ]; then
 fi
 
 # Chromium sometimes gets OOM killed on testing farm
-export TEST_BROWSER=firefox
+export TEST_BROWSER=chromium
 
 # Certain CSR Tests rely on timezone filtering
 export TZ="America/New_York"

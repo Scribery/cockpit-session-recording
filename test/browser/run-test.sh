@@ -20,8 +20,9 @@ if [ "$TEST_OS" = "centos-9" ]; then
     TEST_OS="${TEST_OS}-stream"
 fi
 
-# Chromium sometimes gets OOM killed on testing farm
-export TEST_BROWSER=firefox
+# WebGL2 is unavailable in Firefox headless mode, we must use chromium
+# https://bugzilla.mozilla.org/show_bug.cgi?id=1375585
+export TEST_BROWSER=chromium
 
 # Certain CSR Tests rely on timezone filtering
 export TZ="America/New_York"

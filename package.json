@@ -50,7 +50,7 @@
     "comment-json": "5.0.0",
     "ini": "7.0.0",
     "jquery": "4.0.0",
-    "argparse": "3.0.0",
+    "argparse": "3.0.1",
     "esbuild": "0.28.2",
     "esbuild-sass-plugin": "3.7.0",
     "gettext-parser": "9.1.1",

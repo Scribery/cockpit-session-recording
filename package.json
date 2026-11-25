@@ -36,7 +36,7 @@
     "stylelint-config-recommended-scss": "18.0.0",
     "stylelint-config-standard": "41.1.0",
     "stylelint-config-standard-scss": "18.0.0",
-    "stylelint-formatter-pretty": "4.0.1",
+    "stylelint-formatter-pretty": "5.0.0",
     "typescript": "6.0.3"
   },
   "dependencies": {
